@@ -14,7 +14,26 @@ Have the following installed on your system before installing MetaFunPrimer. The
 * BLAST (v2.7.1+)
 * EcoFunPrimer
 
+To test if your installation is working, do the following:
+
+.. code:: bash
+
+    MetaFunPrimer -i test -m test_dir
+
 Quickstart
 ----------
 
-To test if your installation is working, do the following:
+To get started, enter:
+
+.. code:: bash
+
+    MetaFunPrimer -i target_seqs -m metags
+
+The inputs are as follows:
+
+**target_seqs**
+    A fasta file of the sequences of interest.
+
+**metags**
+    A directory of metagenomes (fasta files) representing the environment of study 
+        
