@@ -1,0 +1,167 @@
+#!/bin/bash
+
+# Performs clustering and determines optimal inclusion threshold of sequences
+# Usage: bash clustering-script.sh input_fasta_file
+# Input:
+#	input_fasta_file:  An input file of unaligned protein sequences
+#	metagenome_directory: A directory containing all of the metagenomes
+#		in *.fa, *.fna, *.fastq, *.fasta formats.
+# Outputs:
+#	- A directory containing all the clustering information at varying
+#	percents 
+#	- Within that directory, a cluster_counts.tsv, a tsv  with columns 
+# 	with similarity threshhold, number of clusters, and 
+#	first-order differences
+# Example: bash clustering-script.sh fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa /mnt/gs18/scratch/users/summer90/metaPipeSubTest
+# Example (unit test): bash clustering-script.sh -i tests/targets/target_genes_prot.fa -d tests/metagenomes/
+
+# cat ~/docs/projects/MetaFunPrimer/src/logo.txt
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+usage() {
+cat << EOF 
+
+${bold}MetaFunPrimer: Cluster${normal}
+	Performs clustering of the input sequence file
+
+${bold}Usage:${normal}
+	mfpcluster -i <input_fasta_file> <[options]> 
+
+${bold}Inputs:${normal}
+	- input_fasta_file: An input file of unaligned protein sequences
+	- metagenome_directory: A directory containing all of the metaganomes in 
+		*.fa, *.fna, *.fastq, *.fasta formats.
+
+${bold}Outputs:${normal}
+	- <input_fasta_file>.clustering_info - A directory containing:
+		- Clustering information of the input fasta sequences at various
+			percents
+		- cluster_counts.tsv: tsv with number of clusters and first-order
+			differences at various similarity thresholds
+
+${bold}Example:${normal}
+	mfpcluster -i fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa 
+
+${bold}Options:${normal}
+	-h, --help	Display this message
+	-i, --in	Input file
+	-o, --out	Output directory (Default: Input_file.sequences)
+
+EOF
+}
+
+if (($# == 0)); then
+	usage
+	exit 1
+fi
+
+while getopts ":hi:o:-:" opt; do
+  case $opt in
+	h ) 
+		usage
+		exit 1
+      	;;
+	o )
+		outdir=$OPTARG
+	;;	
+	i )
+		input_file=$OPTARG
+	;;
+	- )	
+		LONG_OPTARG="${OPTARG#*=}"
+		case $OPTARG in
+			in=?* )	
+				input_file=$LONG_OPTARG
+			;;
+			help ) 
+				usage
+				exit 1
+			;;
+			* )
+				echo "Invalid option: $LONG_OPTARG"
+				usage
+				exit 1
+			;;
+
+		esac
+	;;
+    	\? )
+		echo "Invalid option: $OPTARG"
+		usage
+		exit 1
+      	;;
+  esac
+done
+
+# Check if input file is entered
+# echo "Input file: $input_file"
+if [ !  "$input_file" ]
+then
+	echo "Error: Input file required."	
+	echo "Usage: mfpcluster -i <input_file>"
+	exit 1
+fi
+
+# Check outdirectory - if none supplied, automatically make one
+if [ ! "$outdir" ]
+then
+	outdir="$input_file.clustering"
+fi
+
+if [ ! -d "$outdir" ]
+then
+	mkdir $outdir
+fi
+
+echo "Input file: $input_file"
+echo "Output directory: $outdir"
+
+cd $outdir 
+
+echo "Making clustering commands."
+
+for perc_ident in $(seq 0.8 0.01 1); 
+do
+	# echo "Percent identity: $perc_ident"
+	echo "cd-hit -i ../$input_file -o $perc_ident.fa -c $perc_ident -n 5 -T 0 > /dev/null" 
+done > command.cluster.sh
+
+echo "Loading CD-HIT..."
+
+module load icc/2017.1.132-GCC-6.3.0-2.27 impi/2017.1.132 
+module load CD-HIT/4.6.8 
+
+echo "Successfully loaded." 
+echo "Beginning clustering..."
+
+# TODO: Need to silence parallel notice manually for now. Fix later.
+cat command.cluster.sh | /mnt/research/germs/softwares/parallel-20181022/src/parallel 
+
+echo "Clustering done."
+echo ""
+echo "Getting cluster counts by similarity threshold > cluster_counts.tsv"
+
+for fin in $(ls *.clstr | sort -nr);
+do
+        echo "$(echo $fin | cut -d '.' -f 1,2)	$(cat $fin | grep -c ^">")"
+done > cluster_counts.tsv
+
+echo "Calculating first-order differences > cluster_counts.tsv"
+
+# cat cluster_counts.tsv | awk -F "\t" 'BEGIN {OFS="\t"} {sum += $2; print $1 OFS $2 OFS sum}' > temp 
+
+cat cluster_counts.tsv | awk -F "\t" 'BEGIN {OFS="\t"} NR==1{max=$2} {left = (max - $2) / NR; NR==20 ? right = 0: right = (-$2) / (20 - NR) ; print $1 OFS $2 OFS left - right}' > temp
+mv temp cluster_counts.tsv
+
+# Currently gets max first-order differenceq
+opt_info=( $(awk '{if(max<$3){max=$3;opt_perc=$fin;num_clusters=$2}}END{print opt_perc num_clusters}' cluster_counts.tsv) )
+
+echo "Optimum percentage: ${opt_info[0]}"
+echo "Number of clusters: ${opt_info[1]}"
+
+opt_clstr=${opt_info[0]}.fa
+
+echo "Optimum percentage: ${opt_info[0]}" >> cluster_counts.tsv
+echo "Number of clusters: ${opt_info[1]}" >> cluster_counts.tsv
