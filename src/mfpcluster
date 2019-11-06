@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Performs clustering and determines optimal inclusion threshold of sequences
-# Usage: bash clustering-script.sh input_fasta_file
+# Usage: bash clustering-script.sh input_fasta
 # Input:
-#	input_fasta_file:  An input file of unaligned protein sequences
+#	input_fasta:  An input file of unaligned protein sequences
 #	metagenome_directory: A directory containing all of the metagenomes
 #		in *.fa, *.fna, *.fastq, *.fasta formats.
 # Outputs:
@@ -27,19 +27,18 @@ ${bold}MetaFunPrimer: Cluster${normal}
 	Performs clustering of the input sequence file
 
 ${bold}Usage:${normal}
-	mfpcluster -i <input_fasta_file> <[options]> 
+	mfpcluster -i <input_fasta> <[options]> 
 
 ${bold}Inputs:${normal}
-	- input_fasta_file: An input file of unaligned protein sequences
-	- metagenome_directory: A directory containing all of the metaganomes in 
-		*.fa, *.fna, *.fastq, *.fasta formats.
+	- input_fasta: An input file of unaligned protein sequences
 
 ${bold}Outputs:${normal}
-	- <input_fasta_file>.clustering_info - A directory containing:
+	- <input_fasta>.clustering_info - A directory containing:
 		- Clustering information of the input fasta sequences at various
 			percents
-		- cluster_counts.tsv: tsv with number of clusters and first-order
+		- cluster_counts.tsv - tsv with number of clusters and first-order
 			differences at various similarity thresholds
+		- <input_fasta>.log: diagnostics from the run of mfpcluster
 
 ${bold}Example:${normal}
 	mfpcluster -i fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa 
@@ -72,8 +71,29 @@ while getopts ":hi:o:-:" opt; do
 	- )	
 		LONG_OPTARG="${OPTARG#*=}"
 		case $OPTARG in
-			in=?* )	
-				input_file=$LONG_OPTARG
+			in )	
+				echo "\"\$$OPTIND\""
+				eval "input_file=\"\$$OPTIND\""
+				if [ -z "$input_file" ]; then
+					echo "Input file required for argument --in" >&2; exit 2
+				fi
+				# if [ ! -f "input_file" ]; then
+				# 	echo "Input file $input_file does not exist." >&2; exit 2
+				# fi
+				#OPTIND=$((OPTIND+1)) 
+				shift
+			;;
+			out )	
+				echo "$OPTARG"	
+				eval "outdir=\"\$$OPTIND\""
+				if [ -z "$outdir" ]; then
+					echo "Output directory required for argument --out" >&2; exit 2
+				fi
+				# if [ ! -f "input_file" ]; then
+				# 	echo "Input file $input_file does not exist." >&2; exit 2
+				# fi
+				#OPTIND=$((OPTIND+1)) 
+				shift
 			;;
 			help ) 
 				usage
@@ -120,7 +140,7 @@ echo "Output directory: $outdir"
 
 cd $outdir 
 
-echo "Making clustering commands."
+printf "MetaFunPrimer: Cluster\nInput file: $input_file\nRun started: $(date)\n" > $input_file.log
 
 for perc_ident in $(seq 0.8 0.01 1); 
 do
@@ -128,12 +148,6 @@ do
 	echo "cd-hit -i ../$input_file -o $perc_ident.fa -c $perc_ident -n 5 -T 0 > /dev/null" 
 done > command.cluster.sh
 
-echo "Loading CD-HIT..."
-
-module load icc/2017.1.132-GCC-6.3.0-2.27 impi/2017.1.132 
-module load CD-HIT/4.6.8 
-
-echo "Successfully loaded." 
 echo "Beginning clustering..."
 
 # TODO: Need to silence parallel notice manually for now. Fix later.
@@ -161,7 +175,6 @@ opt_info=( $(awk '{if(max<$3){max=$3;opt_perc=$fin;num_clusters=$2}}END{print op
 echo "Optimum percentage: ${opt_info[0]}"
 echo "Number of clusters: ${opt_info[1]}"
 
-opt_clstr=${opt_info[0]}.fa
-
-echo "Optimum percentage: ${opt_info[0]}" >> cluster_counts.tsv
-echo "Number of clusters: ${opt_info[1]}" >> cluster_counts.tsv
+printf "Optimum (?) percentage: %s\nNumber of clusters: %s\n" "${opt_info[0]}" "${opt_info[1]}" >> $input_file.log
+echo "Optimum (?) percentage file: ${opt_info[0]}.fa" >> $input_file.log
+echo "Run complete: $(date)" >> $input_file.log
