@@ -1,0 +1,272 @@
+#!/bin/bash
+
+# Takes an aligned fasta file and designs primers using RDP's PrimerDesign software and outputs them in a fasta format.
+# Usage: mfpdesign -i primer_targets 
+# Input:
+#	primer_targets: an aligned fasta file with N characters removed
+# Outputs:
+#	primer_targets.primers.out: the raw output from RDP's PrimerDesign software
+#	primer_targets.primers.fa: the probes from RDP's PrimerDesign software formatted
+# 		as a fasta file
+# Example: bash design_primers.sh abundant_genes_nucleotide.aligned.noN.fa 
+
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+primer_targets=$1
+
+die() {
+	printf '%s\n' "$1" >&2
+	exit 1
+}
+
+
+usage() {
+cat << EOF 
+
+${bold}MetaFunPrimer: Design${normal}
+	Designs primers using RDP's EcoFunPrimer and formats them into fasta files.
+
+	Default parameters are set to design primers with product lengths between 
+	200-275 bp. 	
+
+${bold}Usage:${normal}
+	mfpdesign -i <input_fasta> [options...]
+
+${bold}Inputs:${normal}
+	- input_fasta: An input file of aligned sequences in fa or fasta format
+
+${bold}Outputs:${normal}
+	- <input_fasta>.out: the raw output of RDP's EcoFunPrimer
+	- <input_fasta>.fa: formatted fasta file of primers
+	- <input_fasta>.products: products formed by primers against original targets
+${bold}Example:${normal}
+	mfpcluster -i fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa 
+
+${bold}Options:${normal}
+	${bold}-i, --in <filename>${normal}	
+		Input file of aligned sequences in *.fa or *.fasta format
+	${bold}-h, --help${normal}	
+		Display this message
+	${bold}-o, --out <output_directory>${normal} (Default: input_fasta_file.clustering)
+		Output directory name 
+	${bold}--assay_max <Integer>${normal} (Default: 30) 
+		Maxiumum number of assays allowed. One degenerate primer pair per assay
+	${bold}--degenMax <Integer> ${normal} (Default: 6; Recommended: < 10) 
+		Maximum degeneracy per primer pair.  Nondegenerate primers = 1.
+	${bold}--forwardMaxPos <Integer> ${normal} (Default: 120) 
+		Foward oligo maximum position to end enumeration.  Needed if SlidingScale is false
+	${bold}--forwardMinPos <Integer> ${normal} (Default: 100) 
+		Foward oligo minimum position to begin enumeration.  Needed if SlidingScale is false
+	${bold}--GCFilterMin <Real, 0.00 - 1.00> ${normal} (Default: 0.15) 
+		G+C content filter minimum percent.  Recommend leaving at Default if unsure
+	${bold}--GCFilterMax <Real, 0.00 - 1.00> ${normal} (Default: 0.80) 
+		G+C content filter maximum percent.  Recommend leaving at Default if unsure
+	${bold}--hairMax <Integer> ${normal} (Default: 24) 
+		Hairpin maximum temperature
+	${bold}--homoMax <Integer> ${normal} (Default: 35) 
+		Homodimer maximum temperature
+	${bold}--isHenikoffWeightNeeded <Boolean> ${normal} (Default: false) 
+		Henikoff Weighting Method.  Set to 'true' or 't' if you would like this
+		weighting method results aswell as uniform results.  Will give the highest
+		weight to unique sequences based on bases at each position.
+	${bold}--magnesConc <magnesConc> ${normal} (Default: 1.5) 
+		Divalent magnesium concentration for thermodynamic calculations
+	${bold}--maxMismatches <Integer> ${normal} (Default: 0) 
+		Oligo mismatch maximum. Recommend setting between 0 and 3
+	${bold}--NoPoly3GCFilter <Boolean> ${normal} (Default: true) 
+		If true, filter to remove any oligo generated with three Guanines or three Cytosines in a row
+	${bold}--NoTEndFilter <Boolean> ${normal} (Default: true) 
+		If true, filter to remove any oligo generated with a Thymine base at end
+	${bold}--oligoMinSize <Integer> ${normal} (Default: 22) 
+		Minimum oligo length; Recommend no shorter than 15 bp
+	${bold}--oligoMaxSize <Integer> ${normal} (Default: 30) 
+		Maximum oligo length; Recommend no longer than 30 bp
+	${bold}--output <output> ${normal}
+		Full path to output file
+	${bold}--PolyRunFilter <Integer> ${normal} (Default: 4) 
+		Poly Run max filter
+	${bold}--productLengthMin <Integer> ${normal} (Default: 220) 
+		Minimum amplicon product length.  Needed if SlidingScale is true
+	${bold}--productLengthMax <Integer> ${normal} (Default: 275) 
+		Maximum amplicon product length.  Needed if SlidingScale is true
+	${bold}--reverseMaxPos <Integer> ${normal} (Default: 370) 
+		Reverse oligo maximum position to end enumeration.  Needed if SlidingScale is false
+	${bold}--reverseMinPos <Integer> ${normal} (Default: 350) 
+		Reverse oligo minimum position to begin enumeration.  Needed if SlidingScale is false
+	${bold}--SlidingScale <Boolean> ${normal} (Default: true) 
+		If true, then forward and reverse primer pairs are built with a sliding
+		window between the given amplicon product minimum and maximum length. If false,
+		the pairs will be built between the forward and reverse given min and max.
+	${bold}--sodiumConc <sodiumConc> ${normal} (Default: 50) 
+		Monovalent sodium concentration for thermodynamic calculations
+	${bold}--tempMin <tempMin> ${normal} (Default: 55) 
+		Oligo min melting temperature
+	${bold}--tempMax <tempMax> ${normal} (Default: 63) 
+		Oligo max melting temperature
+	
+EOF
+}
+
+if (($# == 0)); then
+	usage
+	exit 1
+fi
+
+# set defaults
+assay_max=30 
+min_product_length=200
+max_product_length=275
+min_oligo_length=18
+max_oligo_length=30
+
+while getopts ":hi:o:-:" opt; do
+  case ${opt} in
+	h ) 
+		usage
+		echo "Exiting..."
+		exit 1
+      	;;
+	o )
+		outdir=$OPTARG
+	;;	
+	i )
+		input_file=$OPTARG
+	;;
+	- )	
+		LONG_OPTARG="${OPTARG#*\s}"
+		case ${OPTARG} in
+			in )
+				echo "$OPTARG"	
+				echo "\"\$$OPTIND\""
+				eval "input_file=\"\$$OPTIND\""
+				if [ -z "input_file" ]; then
+					echo "Input file required for argument --in" >&2; exit 2
+				fi
+				# if [ ! -f "input_file" ]; then
+				# 	echo "Input file $input_file does not exist." >&2; exit 2
+				# fi
+				#OPTIND=$((OPTIND+1)) 
+				echo "$input_file"
+				shift
+			;;
+			out )	
+				echo "$OPTARG"	
+				eval "outdir=\"\$$OPTIND\""
+				if [ -z "outdir" ]; then
+					echo "Output directory required for argument --out" >&2; exit 2
+				fi
+				# if [ ! -f "input_file" ]; then
+				# 	echo "Input file $input_file does not exist." >&2; exit 2
+				# fi
+				#OPTIND=$((OPTIND+1)) 
+				shift
+				echo "$outdir"
+			;;
+			assay_max )
+				echo "$OPTARG"	
+				eval "assay_max=\"\$$OPTIND\""
+				if [ -z "assay_max" ]; then
+					echo "Integer required for argument assay_max" >&2; exit 2
+				fi
+				#OPTIND=$((OPTIND+1)) 
+				shift
+				echo "$assay_max"
+			;;
+			min_product_length )
+				echo "$OPTARG"	
+				eval "min_product_length=\"\$$OPTIND\""
+				if [ -z "min_product_length" ]; then
+					echo "Integer required for argument min_product_length" >&2; exit 2
+				fi
+				#OPTIND=$((OPTIND+1)) 
+				shift
+				echo "$min_product_length"
+			;;
+			max_product_length )
+				echo "$OPTARG"	
+				eval "max_product_length=\"\$$OPTIND\""
+				if [ -z "max_product_length" ]; then
+					echo "Integer required for argument max_product_length" >&2; exit 2
+				fi
+				#OPTIND=$((OPTIND+1)) 
+				shift
+				echo "$max_product_length"
+			;;
+			min_oligo_length )
+				echo "$OPTARG"	
+				eval "min_oligo_length=\"\$$OPTIND\""
+				if [ -z "min_oligo_length" ]; then
+					echo "Integer required for argument min_oligo_length" >&2; exit 2
+				fi
+				#OPTIND=$((OPTIND+1)) 
+				shift
+				echo "$min_oligo_length"
+			;;
+			max_oligo_length )
+				echo "$OPTARG"	
+				eval "max_oligo_length=\"\$$OPTIND\""
+				if [ -z "max_oligo_length" ]; then
+					echo "Integer required for argument max_oligo_length" >&2; exit 2
+				fi
+				#OPTIND=$((OPTIND+1)) 
+				shift
+				echo "$max_oligo_length"
+			;;
+			help ) 
+				usage
+				exit 1
+			;;
+			* )
+				echo "Invalid option: $LONG_OPTARG"
+				usage
+				exit 1
+			;;
+
+		esac
+	;;
+    	\? )
+		echo "Invalid option: $OPTARG"
+		usage
+		exit 1
+      	;;
+  esac
+done
+# Check if input file is entered
+# if [ !  "$input_file" ]
+# then
+#     echo "Error: Input file required."  
+#     echo "Usage: mfpcluster -i <input_file>"
+#     exit 1
+# fi
+
+# Check outdirectory - if none supplied, automatically make one
+if [ ! "$outdir" ]
+then
+    outdir="$input_file.primers"
+fi
+
+# if [ ! -d "$outdir" ]
+# then
+#     mkdir $outdir
+# fi
+
+echo "Input file: $input_file"
+echo "Output files: $outdir.*"
+echo "Maximum assays per target: $assay_max"
+echo "Minimum product length: $min_product_length"
+echo "Maximum product length: $max_product_length"
+echo "Maximum oligo length: $min_oligo_length"
+echo "Maximum oligo length: $max_oligo_length"
+
+# # Design primer
+java -jar /mnt/research/germs/softwares/Primer_Design/PrimerDesign_latest/PrimerDesign.jar -subcommand select -input $input_file -productLengthMin $min_product_length -productLengthMax $max_product_length -oligoMinSize $min_oligo_length -oligoMaxSize $max_oligo_length -maxMismatches 0 -tempMin 55 -tempMax 63 -hairMax 24 -homoMax 35 -isTreeWeightNeeded f -isHenikoffWeightNeeded f -os linux -output $outdir.rdp -assayMax $assay_max -degenMax 6 -NoTEndFilter t -NoPoly3GCFilter t -PolyRunFilter 4 -GCFilterMin 0.15 -GCFilterMax 0.8
+
+#  
+# Format output
+# To do: remove trailing .rdp from outdir.fa
+get_primer_from_design.py $outdir.rdp > $outdir.fa
+
+# Get products against original input
+get_pcr_product.py $outdir.fa $input_file > $outdir.products
