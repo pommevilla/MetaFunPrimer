@@ -181,7 +181,7 @@ do
 	echo "diamond blastx --db ../$input_file --query $fin --out ../$(basename $fin).m8 --id 96"
 done > commands.diamond.txt
 
-split -a 3 -dl 100 --additional-suffix=.sb commands.diamond.txt job.diamond.
+split -a 3 -dl 20 --additional-suffix=.sb commands.diamond.txt job.diamond.
 
 for fin in *.sb
 do
