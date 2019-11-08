@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Helper script to update the job checkilst.
+
+job_num=$1
+msg=$2
+
+sed -i "/$job_num/ s/$/\t${msg}/g" job.checklist.tsv
