@@ -197,7 +197,7 @@ printf "\nSubmitting jobs..."
 for fin in *.sb
 do 
 	current_job=$(echo $fin | cut -d '.' -f 3)
-	#qsub $fin
+	qsub $fin
 	update_job_status $current_job "Submitted: $(date +'%H:%M %m\/%d\/%y')" 
 	sleep 0.25
 done
