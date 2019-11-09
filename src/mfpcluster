@@ -175,6 +175,6 @@ opt_info=( $(awk '{if(max<$3){max=$3;opt_perc=$fin;num_clusters=$2}}END{print op
 echo "Optimum percentage: ${opt_info[0]}"
 echo "Number of clusters: ${opt_info[1]}"
 
-printf "Optimum (?) percentage: %s\nNumber of clusters: %s\n" "${opt_info[0]}" "${opt_info[1]}" >> $input_file.log
-echo "Optimum (?) percentage file: ${opt_info[0]}.fa" >> $input_file.log
+printf "Recommended similarity: %s\nNumber of clusters: %s\n" "${opt_info[0]}" "${opt_info[1]}" >> $input_file.log
+echo "Recommended fasta file:" >> $input_file.log
 echo "Run complete: $(date)" >> $input_file.log
