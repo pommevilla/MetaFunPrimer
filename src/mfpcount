@@ -1,0 +1,138 @@
+#!/bin/bash
+
+# Summarizes results of a directory of *.m8 files.
+# Usage: mfpdesign -i protein_fasta -e env_directory [options,,,]
+# Input:
+#	primer_targets: an aligned fasta file with N characters removed
+#	env_directory: a directory containing the metagenomes to search against.
+# Outputs:
+#	primer_targets.primers.out: the raw output from RDP's PrimerDesign software
+#	primer_targets.primers.fa: the probes from RDP's PrimerDesign software formatted
+# 		as a fasta file
+# Example: bash design_primers.sh abundant_genes_nucleotide.aligned.noN.fa 
+
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+die() {
+	printf 'ERROR: %s\nExiting.' "$1" >&2
+	exit 1
+}
+
+usage() {
+cat << EOF 
+
+${bold}MetaFunPrimer: Count${normal}
+	Summarizes a directory of DIAMOND results by counting the presence and 
+	abundance of genes.
+
+${bold}Usage:${normal}
+	mfpdesign -i <input_dir> [options...] 
+
+${bold}Inputs:${normal}
+	- input_dir: Directory containing *.m8 files
+
+${bold}Outputs:${normal}
+    - summary.tsv: tsv with columns gene name, richness and abundance
+
+${bold}Example:${normal}
+	mfpcluster -i fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa 
+
+${bold}Options:${normal}
+	${bold}-i, --in <filename>${normal}	
+		Fasta format file containing primer pairs for testing
+	${bold}-o, --out <filename>${normal}	
+		String filename for where to save results. Defaults to <input_fasta>.products
+    
+	${bold}-h, --help${normal}	
+		Display this message
+EOF
+}
+
+if (($# == 0)); then
+	usage
+	exit 1
+fi
+
+
+while getopts ":hi:o:b:e:-:" opt; do
+  case ${opt} in
+	h ) 
+		usage
+		exit 1
+      	;;
+	o )
+		outdir=$OPTARG
+	;;	
+	i )
+		input_dir=$OPTARG
+	;;
+	- )	
+		LONG_OPTARG="${OPTARG#*\s}"
+		case ${OPTARG} in
+			in )
+				echo "$OPTARG"	
+				eval "input_dir=\"\$$OPTIND\""
+				if [ -z "input_dir" ]; then
+					die "Input file required for argument --in"
+				fi
+				if [ ! -f "input_dir" ]; then
+					die "Input file $input_dir does not exist." 
+				fi
+				shift
+			;;
+			out )	
+				eval "outdir=\"\$$OPTIND\""
+				if [ -z "outdir" ]; then
+					echo "Output directory required for argument --out" >&2; exit 2
+				fi
+				shift
+			;;
+			help ) 
+				usage
+				exit 1
+			;;
+			* )
+				echo "Invalid option: $LONG_OPTARG"
+				usage
+				exit 1
+			;;
+
+		esac
+	;;
+    	\? )
+		echo "Invalid option: $OPTARG"
+		usage
+		exit 1
+      	;;
+  esac
+done
+
+if [ ! "$input_dir" ]
+then
+    die "Input directory required"
+fi
+
+echo "Input directory: $(readlink -f $input_dir)"
+shortdir=$(readlink -f $input_dir | rev | cut -d '/' -f 1 | rev)
+
+#if [ ! -d "$outdir" ]
+#then
+#	mkdir $outdir
+#fi
+#cd $outdir
+
+join -j 1 -t '	' <(count_richness $input_dir | sort -k 1) <(count_abundance $input_dir | sort -k 1) > "$shortdir.summary.tsv"
+
+# sorting by newS
+calc_sscore "$shortdir.summary.tsv" | sort -nrk 4 > temp 
+
+cumulative_abundance temp > "$shortdir.summary.tsv"  
+
+# sorting by fo_diff
+sort -nrk 3 "$shortdir.summary.tsv" > temp 
+
+fo_diffs temp > "$shortdir.summary.tsv" 
+ cumulative_abundance "$shortdir.summary.tsv" > temp  && mv temp "$shortdir.summary.tsv"
+
+#mv temp "$shortdir.summary.tsv"

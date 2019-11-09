@@ -1,0 +1,35 @@
+#!/usr/bin/python3 
+"""
+This script count how many hit found ; cutoff = 80 percent identity
+usage: python make_count_diamond.py mgm4477807.3.fastq.m8 mgm4477807.3.fastq.m8
+python make_count_diamond.py *.m8 > gene_abundances.txt
+Counts the total abundance of the gene across all samples
+"""
+
+import sys
+import glob
+import os
+
+def main():
+    current_dict = {}
+    input_dir = sys.argv[1]
+    results_file_list =  glob.glob("{}/*.m8".format(input_dir))
+
+    #TODO: transform to generator 
+    for results_file in results_file_list:
+        if os.path.getsize(results_file) >  0:
+            prev = ""
+            with open(results_file) as fin: 
+                for line in fin:
+                    line = line.strip().split("\t")
+                    if prev == line[0]:
+                        continue
+                    else:
+                        prev = line[0]
+                    current_dict[line[1]] = current_dict.get(line[1], 0) + 1
+
+    for item in current_dict.items():
+        print("{}\t{}".format(item[0], str(item[1])))
+
+if __name__ == '__main__':
+    main()

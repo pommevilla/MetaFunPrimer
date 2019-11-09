@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Calculates the S score for the presence-richness of the samples
+
+input_file=$1
+
+total_abundance="$(awk '{sum += $3}END{print sum}' $input_file)"
+
+awk -v var=$total_abundance 'BEGIN{OFS="\t"}{sum+=$3;print $0 OFS substr(sum/var, 1, 5)}' $input_file
