@@ -113,14 +113,15 @@ then
     die "Input directory required"
 fi
 
+thresh=0.80
+
 echo "Input directory: $(readlink -f $input_dir)"
 shortdir=$(readlink -f $input_dir | rev | cut -d '/' -f 1 | rev)
 
-#if [ ! -d "$outdir" ]
-#then
-#	mkdir $outdir
-#fi
-#cd $outdir
+echo "MetaFunPrimer: Count" > $shortdir.log
+echo "Input directory: $(readlink -f $input_dir)" >> $shortdir.log
+echo "Cumulative abundance threshold: $thresh" >> $shortdir.log
+echo "Summary file: $shortdir.summary.tsv" >> $shortdir.log
 
 join -j 1 -t '	' <(count_richness $input_dir | sort -k 1) <(count_abundance $input_dir | sort -k 1) > "$shortdir.summary.tsv"
 
@@ -136,3 +137,30 @@ fo_diffs temp > "$shortdir.summary.tsv"
  cumulative_abundance "$shortdir.summary.tsv" > temp  && mv temp "$shortdir.summary.tsv"
 
 #mv temp "$shortdir.summary.tsv"
+
+# Make recommendations
+
+# Find threshold for S score
+#TODO: Finish the separate thresholding utility with user input threshold and sorting column
+sort -nrk 4 "$shortdir.summary.tsv" | while read -r gene richness abundance s_score scum fodiff fcum
+do
+    echo "$gene"
+    if [[ $scum > 0.80 ]]; then
+        break
+    fi
+done > $shortdir.recommended_clusters.s_score  
+
+echo "Number of recommended clusters when using s-score: $(cat $shortdir.recommended_clusters.s_score | wc -l)" >> $shortdir.log
+
+
+sort -nrk 3 "$shortdir.summary.tsv" | while read -r gene richness abundance s_score scum fodiff fcum
+do
+    echo "$gene"
+    if [[ $scum > 0.80 ]]; then
+        break
+    fi
+done > $shortdir.recommended_clusters.fo_diffs 
+# Find threshold for fo
+echo "Number of recommended clusters when using first-order differences: $(cat $shortdir.recommended_clusters.fo_diffs | wc -l)" >> $shortdir.log
+
+echo "Recommended next command: mfpprepare -n path/to/nucleotide_fasta -p path/to/protein_fasta -c path/to/cluster/file -t $shortdir.recommended_clusters.\* -m path/to/protein_nucleotide_map" >> $shortdir.log
