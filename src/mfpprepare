@@ -1,0 +1,123 @@
+#!/bin/bash
+#
+# Prepares sequences for input into design_primers.sh.
+# Steps performed:
+#	1. Getting abundant gene sequences
+#	2. Aligning them with clustalo
+#	3. Removing N characters
+#
+# Usage: bash get_clusters.sh input_fasta_file
+# Input:
+#	gene_presences: a tsv containing the gene abundances per cluster
+#	optimal_upper_gene: the string name for the representative of the optimal gene
+# 	inclusion threshold 
+#	cluster_file: the *.fa.clstr file output from cd-hit for the optimum similarity threshold
+#	protein_nucleotide_map: a tsv containing the map between the nucleotide and protein sequences
+# 	nuc_sequeces: a .fa containing the nucleotide sequences
+# Outputs:
+#	abundant_genes_nucleotide.fa: all the nucleotide sequences from the genes in the environmentally abundant clusters
+# Example: bash get_clusters.sh fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa /mnt/gs18/scratch/users/summer90/metaPipeSubTest
+
+gene_presences=$1
+optimal_upper_gene=$2
+cluster_file=$3
+protein_nucleotide_map=$4
+nuc_sequences=$5
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+
+die() {
+	printf '%s\n' "$1" >&2
+	exit 1
+}
+
+
+usage() {
+cat << EOF 
+
+${bold}MetaFunPrimer: Prepare${normal}
+    Prepares fasta files for primer design
+
+${bold}Usage:${normal}
+	mfpprepare -n <nucleotide.fasta> -c <cluster_info.txt> -t <cluster_inclusion.txt>
+                -m <protein_nucleotide_map> [options...]
+
+${bold}Inputs:${normal}
+	- <nucleotide.fasta>: a nucleotide fasta file 
+    - <cluster_info.txt>: a file of the format output by cd-hit 
+    - <cluster_inclusion.txt>: a newline separated list of genes to include
+    - <protein_nucleotide_map>: a tsv with protein accession IDs and nucleotide accession IDs in
+        the first and second column, respectively
+${bold}Outputs:${normal}
+	- <input_fasta>.products: products formed by primers against original targets
+${bold}Options:${normal}
+	${bold}-i, --in <filename>${normal}	
+		Input file of aligned sequences in *.fa or *.fasta format
+	${bold}-h, --help${normal}	
+		Display this message
+	${bold}-o, --out <output_directory>${normal} (Default: input_fasta_file.clustering)
+		Output directory name 
+	
+EOF
+}
+
+if (($# == 0)); then
+	usage
+	exit 1
+fi
+
+# set defaults
+while getopts ":hi:o:n:p:c:t:m:i:-:" opt; do
+  case ${opt} in
+	h ) 
+		usage
+		echo "Exiting..."
+		exit 1
+      	;;
+	n )
+		nucleotides=$OPTARG
+	;;	
+	c )
+		clusters=$OPTARG
+	;;	
+	t )
+		inclusion=$OPTARG
+	;;	
+	m )
+		pn_map=$OPTARG
+	;;	
+    	\? )
+		echo "Invalid option: $OPTARG"
+		usage
+		exit 1
+      	;;
+  esac
+done
+# if [ ! -d "$outdir" ]
+# then
+#     mkdir $outdir
+# fi
+
+echo "Nucleotide fasta: $nucleotides"
+echo "Cluster information: $clusters"
+echo "Cluster inclusion list: $inclusion"
+echo "Protein-nucleotide map: $pn_map"
+
+
+shortdir=$(readlink -f $nucleotides | rev | cut -d '/' -f 1 | rev)
+
+# Get abundant gene clusters
+cat $inclusion | while read -r gene
+do
+    cat <(sed -n -e "/$gene/,/Cluster/ p" $clusters | sed -e "$d") <(tac $clusters | sed -n -e "/$gene/,/Cluster/ p" | sed -e "$d" | tac) |\
+        cut -f2 | grep -oP ">\K(.*)(?=(\.\.\.))" | sort -u  | grep -f - $pn_map | cut -f2 | grep --no-group-separator -f - $nucleotides -A 1 
+done > abundant.$shortdir
+
+# Align the abundant genes with clustalo
+head <(job_header) > align.abundant.$shortdir.sb
+echo "/mnt/research/germs/softwares/clustalo-1.2.4-Ubuntu-x86_64 -i abundant.$shortdir -o aligned.abundant.$shortdir" >> align.abundant.$shortdir.sb
+echo "sed '/^>/! s/[nN]/-/g' aligned.abundant.$shortdir > prepped.$shortdir" >> align.abundant.$shortdir.sb
+qsub align.abundant.$shortdir.sb
+
