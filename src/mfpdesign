@@ -253,7 +253,7 @@ fi
 # fi
 
 echo "Input file: $input_file"
-echo "Output files: $outdir.*"
+echo "Output files: $outdir"
 echo "Maximum assays per target: $assay_max"
 echo "Minimum product length: $min_product_length"
 echo "Maximum product length: $max_product_length"
@@ -261,12 +261,19 @@ echo "Maximum oligo length: $min_oligo_length"
 echo "Maximum oligo length: $max_oligo_length"
 
 # # Design primer
-java -jar /mnt/research/germs/softwares/Primer_Design/PrimerDesign_latest/PrimerDesign.jar -subcommand select -input $input_file -productLengthMin $min_product_length -productLengthMax $max_product_length -oligoMinSize $min_oligo_length -oligoMaxSize $max_oligo_length -maxMismatches 0 -tempMin 55 -tempMax 63 -hairMax 24 -homoMax 35 -isTreeWeightNeeded f -isHenikoffWeightNeeded f -os linux -output $outdir.rdp -assayMax $assay_max -degenMax 6 -NoTEndFilter t -NoPoly3GCFilter t -PolyRunFilter 4 -GCFilterMin 0.15 -GCFilterMax 0.8
+head <(job_header) > mfpdesign.$input_file.sb
+
+
+echo "java -jar /mnt/research/germs/softwares/Primer_Design/PrimerDesign_latest/PrimerDesign.jar -subcommand select -input $input_file -productLengthMin $min_product_length -productLengthMax $max_product_length -oligoMinSize $min_oligo_length -oligoMaxSize $max_oligo_length -maxMismatches 0 -tempMin 55 -tempMax 63 -hairMax 24 -homoMax 35 -isTreeWeightNeeded f -isHenikoffWeightNeeded f -os linux -output $outdir.rdp -assayMax $assay_max -degenMax 6 -NoTEndFilter t -NoPoly3GCFilter t -PolyRunFilter 4 -GCFilterMin 0.15 -GCFilterMax 0.8" >> mfpdesign.$input_file.sb
 
 #  
 # Format output
 # To do: remove trailing .rdp from outdir.fa
-get_primer_from_design.py $outdir.rdp > $outdir.fa
+echo "get_primer_from_design.py $outdir.rdp > $outdir.primers" >> mfpdesign.$input_file.sb
 
 # Get products against original input
-get_pcr_product.py $outdir.fa $input_file > $outdir.products
+echo "get_pcr_product.py $outdir.fa $input_file > $outdir.products" >> mfpdesign.$input_file.sb
+
+printf "\nSubmitting job mfpdesign.$input_file.sb...\nJob number: " 
+qsub mfpdesign.$input_file.sb
+printf "Done."
