@@ -14,8 +14,10 @@
 
 bold=$(tput bold)
 normal=$(tput sgr0)
+
 die() {
-	printf 'ERROR: %s\nExiting.' "$1" >&2
+	printf 'ERROR: %s\n' "$1" 
+    printf 'See mfpsearch -h for help.' >&2
 	exit 1
 }
 
@@ -84,7 +86,7 @@ while getopts ":hi:o:b:e:-:" opt; do
 			out )	
 				eval "outdir=\"\$$OPTIND\""
 				if [ -z "outdir" ]; then
-					echo "Output directory required for argument --out" >&2; exit 2
+					die "Output directory required for argument --out"
 				fi
 				shift
 			;;
@@ -93,17 +95,12 @@ while getopts ":hi:o:b:e:-:" opt; do
 				exit 1
 			;;
 			* )
-				echo "Invalid option: $LONG_OPTARG"
-				usage
-				exit 1
+				die "Invalid option: $LONG_OPTARG"
 			;;
-
 		esac
 	;;
     	\? )
-		echo "Invalid option: $OPTARG"
-		usage
-		exit 1
+		die "Invalid option: $OPTARG"
       	;;
   esac
 done
@@ -136,8 +133,6 @@ sort -nrk 3 "$shortdir.summary.tsv" > temp
 fo_diffs temp > "$shortdir.summary.tsv" 
  cumulative_abundance "$shortdir.summary.tsv" > temp  && mv temp "$shortdir.summary.tsv"
 
-#mv temp "$shortdir.summary.tsv"
-
 # Make recommendations
 
 # Find threshold for S score
@@ -152,7 +147,7 @@ done > $shortdir.recommended_clusters.s_score
 
 echo "Number of recommended clusters when using s-score: $(cat $shortdir.recommended_clusters.s_score | wc -l)" >> $shortdir.log
 
-
+# Find thrsehold for fo difference
 sort -nrk 3 "$shortdir.summary.tsv" | while read -r gene richness abundance s_score scum fodiff fcum
 do
     echo "$gene"
@@ -160,7 +155,7 @@ do
         break
     fi
 done > $shortdir.recommended_clusters.fo_diffs 
-# Find threshold for fo
+
 echo "Number of recommended clusters when using first-order differences: $(cat $shortdir.recommended_clusters.fo_diffs | wc -l)" >> $shortdir.log
 
 echo "Recommended next command: mfpprepare -n path/to/nucleotide_fasta -p path/to/protein_fasta -c path/to/cluster/file -t $shortdir.recommended_clusters.\* -m path/to/protein_nucleotide_map" >> $shortdir.log
