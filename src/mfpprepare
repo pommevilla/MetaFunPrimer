@@ -18,21 +18,15 @@
 #	abundant_genes_nucleotide.fa: all the nucleotide sequences from the genes in the environmentally abundant clusters
 # Example: bash get_clusters.sh fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa /mnt/gs18/scratch/users/summer90/metaPipeSubTest
 
-gene_presences=$1
-optimal_upper_gene=$2
-cluster_file=$3
-protein_nucleotide_map=$4
-nuc_sequences=$5
-
 bold=$(tput bold)
 normal=$(tput sgr0)
 
 
 die() {
-	printf '%s\n' "$1" >&2
+	printf 'ERROR: %s\n' "$1" 
+    printf 'See mfpcluster -h for help.' >&2
 	exit 1
 }
-
 
 usage() {
 cat << EOF 
@@ -95,16 +89,11 @@ while getopts ":hi:o:n:p:c:t:m:i:-:" opt; do
       	;;
   esac
 done
-# if [ ! -d "$outdir" ]
-# then
-#     mkdir $outdir
-# fi
 
 echo "Nucleotide fasta: $nucleotides"
 echo "Cluster information: $clusters"
 echo "Cluster inclusion list: $inclusion"
 echo "Protein-nucleotide map: $pn_map"
-
 
 shortdir=$(readlink -f $nucleotides | rev | cut -d '/' -f 1 | rev)
 
@@ -115,7 +104,6 @@ do
         cut -f2 | grep -oP ">\K(.*)(?=(\.\.\.))" | sort -u  | grep -f - $pn_map | cut -f2 | grep --no-group-separator -f - $nucleotides -A 1 
 done > abundant.$shortdir
 
-# Align the abundant genes with clustalo
 head <(job_header) > align.abundant.$shortdir.sb
 echo "/mnt/research/germs/softwares/clustalo-1.2.4-Ubuntu-x86_64 -i abundant.$shortdir -o aligned.abundant.$shortdir" >> align.abundant.$shortdir.sb
 echo "sed '/^>/! s/[nN]/-/g' aligned.abundant.$shortdir > prepped.$shortdir" >> align.abundant.$shortdir.sb
