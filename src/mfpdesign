@@ -14,10 +14,10 @@
 bold=$(tput bold)
 normal=$(tput sgr0)
 
-primer_targets=$1
 
 die() {
-	printf '%s\n' "$1" >&2
+	printf 'ERROR: %s\n' "$1" 
+    printf 'See mfpcluster -h for help.' >&2
 	exit 1
 }
 
@@ -114,7 +114,6 @@ if (($# == 0)); then
 	exit 1
 fi
 
-# set defaults
 assay_max=30 
 min_product_length=200
 max_product_length=275
@@ -138,98 +137,73 @@ while getopts ":hi:o:-:" opt; do
 		LONG_OPTARG="${OPTARG#*\s}"
 		case ${OPTARG} in
 			in )
-				echo "$OPTARG"	
-				echo "\"\$$OPTIND\""
 				eval "input_file=\"\$$OPTIND\""
 				if [ -z "input_file" ]; then
-					echo "Input file required for argument --in" >&2; exit 2
+					die "Input file required for argument --in"
 				fi
 				# if [ ! -f "input_file" ]; then
 				# 	echo "Input file $input_file does not exist." >&2; exit 2
 				# fi
 				#OPTIND=$((OPTIND+1)) 
-				echo "$input_file"
 				shift
 			;;
 			out )	
-				echo "$OPTARG"	
 				eval "outdir=\"\$$OPTIND\""
 				if [ -z "outdir" ]; then
-					echo "Output directory required for argument --out" >&2; exit 2
+					die "Output directory required for argument --out" 
 				fi
 				# if [ ! -f "input_file" ]; then
 				# 	echo "Input file $input_file does not exist." >&2; exit 2
 				# fi
-				#OPTIND=$((OPTIND+1)) 
 				shift
-				echo "$outdir"
 			;;
 			assay_max )
-				echo "$OPTARG"	
 				eval "assay_max=\"\$$OPTIND\""
 				if [ -z "assay_max" ]; then
-					echo "Integer required for argument assay_max" >&2; exit 2
+					die "Integer required for argument assay_max" 
 				fi
-				#OPTIND=$((OPTIND+1)) 
 				shift
-				echo "$assay_max"
 			;;
 			min_product_length )
-				echo "$OPTARG"	
 				eval "min_product_length=\"\$$OPTIND\""
 				if [ -z "min_product_length" ]; then
-					echo "Integer required for argument min_product_length" >&2; exit 2
+					die "Integer required for argument min_product_length" 
 				fi
-				#OPTIND=$((OPTIND+1)) 
 				shift
-				echo "$min_product_length"
 			;;
 			max_product_length )
-				echo "$OPTARG"	
 				eval "max_product_length=\"\$$OPTIND\""
 				if [ -z "max_product_length" ]; then
-					echo "Integer required for argument max_product_length" >&2; exit 2
+					die "Integer required for argument max_product_length" 
 				fi
-				#OPTIND=$((OPTIND+1)) 
 				shift
-				echo "$max_product_length"
 			;;
 			min_oligo_length )
-				echo "$OPTARG"	
 				eval "min_oligo_length=\"\$$OPTIND\""
 				if [ -z "min_oligo_length" ]; then
-					echo "Integer required for argument min_oligo_length" >&2; exit 2
+					die "Integer required for argument min_oligo_length"
 				fi
-				#OPTIND=$((OPTIND+1)) 
 				shift
-				echo "$min_oligo_length"
 			;;
 			max_oligo_length )
-				echo "$OPTARG"	
 				eval "max_oligo_length=\"\$$OPTIND\""
 				if [ -z "max_oligo_length" ]; then
-					echo "Integer required for argument max_oligo_length" >&2; exit 2
+					die "Integer required for argument max_oligo_length" 
 				fi
-				#OPTIND=$((OPTIND+1)) 
 				shift
-				echo "$max_oligo_length"
 			;;
 			help ) 
 				usage
 				exit 1
 			;;
 			* )
-				echo "Invalid option: $LONG_OPTARG"
-				usage
-				exit 1
+				die "Invalid option: $LONG_OPTARG"
 			;;
 
 		esac
 	;;
     	\? )
-		echo "Invalid option: $OPTARG"
-		usage
-		exit 1
+		die "Invalid option: $OPTARG"
       	;;
   esac
 done
@@ -255,19 +229,13 @@ fi
 echo "Input file: $input_file"
 echo "Output files: $outdir"
 echo "Maximum assays per target: $assay_max"
-echo "Minimum product length: $min_product_length"
-echo "Maximum product length: $max_product_length"
-echo "Maximum oligo length: $min_oligo_length"
-echo "Maximum oligo length: $max_oligo_length"
+echo "Product size range: ($min_product_length, $max_product_length)"
+echo "Oligo size range: ($min_oligo_length, $max_oligo_length)"
 
-# # Design primer
 head <(job_header) > mfpdesign.$input_file.sb
-
 
 echo "java -jar /mnt/research/germs/softwares/Primer_Design/PrimerDesign_latest/PrimerDesign.jar -subcommand select -input $input_file -productLengthMin $min_product_length -productLengthMax $max_product_length -oligoMinSize $min_oligo_length -oligoMaxSize $max_oligo_length -maxMismatches 0 -tempMin 55 -tempMax 63 -hairMax 24 -homoMax 35 -isTreeWeightNeeded f -isHenikoffWeightNeeded f -os linux -output $outdir.rdp -assayMax $assay_max -degenMax 6 -NoTEndFilter t -NoPoly3GCFilter t -PolyRunFilter 4 -GCFilterMin 0.15 -GCFilterMax 0.8" >> mfpdesign.$input_file.sb
 
-#  
-# Format output
 # To do: remove trailing .rdp from outdir.fa
 echo "get_primer_from_design.py $outdir.rdp > $outdir.primers" >> mfpdesign.$input_file.sb
 
@@ -275,5 +243,5 @@ echo "get_primer_from_design.py $outdir.rdp > $outdir.primers" >> mfpdesign.$inp
 echo "get_pcr_product.py $outdir.fa $input_file > $outdir.products" >> mfpdesign.$input_file.sb
 
 printf "\nSubmitting job mfpdesign.$input_file.sb...\nJob number: " 
-qsub mfpdesign.$input_file.sb
+#qsub mfpdesign.$input_file.sb
 printf "Done."
