@@ -15,10 +15,14 @@
 # Example: bash clustering-script.sh fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa /mnt/gs18/scratch/users/summer90/metaPipeSubTest
 # Example (unit test): bash clustering-script.sh -i tests/targets/target_genes_prot.fa -d tests/metagenomes/
 
-# cat ~/docs/projects/MetaFunPrimer/src/logo.txt
-
 bold=$(tput bold)
 normal=$(tput sgr0)
+
+die() {
+	printf 'ERROR: %s\n' "$1" 
+    printf 'See mfpcluster -h for help.' >&2
+	exit 1
+}
 
 usage() {
 cat << EOF 
@@ -33,10 +37,10 @@ ${bold}Inputs:${normal}
 	- input_fasta: An input file of unaligned protein sequences
 
 ${bold}Outputs:${normal}
-	- <input_fasta>.clustering_info - A directory containing:
+	- <input_fasta>.clustering_info: A directory containing:
 		- Clustering information of the input fasta sequences at various
-			percents
-		- cluster_counts.tsv - tsv with number of clusters and first-order
+			percentage similarity thresholds
+		- cluster_counts.tsv: tsv with number of clusters and first-order
 			differences at various similarity thresholds
 		- <input_fasta>.log: diagnostics from the run of mfpcluster
 
@@ -46,7 +50,7 @@ ${bold}Example:${normal}
 ${bold}Options:${normal}
 	-h, --help	Display this message
 	-i, --in	Input file
-	-o, --out	Output directory (Default: Input_file.sequences)
+	-o, --out	Output directory (Default: <input_fasta>.clustering)
 
 EOF
 }
@@ -75,7 +79,7 @@ while getopts ":hi:o:-:" opt; do
 				echo "\"\$$OPTIND\""
 				eval "input_file=\"\$$OPTIND\""
 				if [ -z "$input_file" ]; then
-					echo "Input file required for argument --in" >&2; exit 2
+					die "Input file required for argument --in" 
 				fi
 				# if [ ! -f "input_file" ]; then
 				# 	echo "Input file $input_file does not exist." >&2; exit 2
@@ -84,15 +88,10 @@ while getopts ":hi:o:-:" opt; do
 				shift
 			;;
 			out )	
-				echo "$OPTARG"	
 				eval "outdir=\"\$$OPTIND\""
 				if [ -z "$outdir" ]; then
-					echo "Output directory required for argument --out" >&2; exit 2
+					die "Output directory required for argument --out"
 				fi
-				# if [ ! -f "input_file" ]; then
-				# 	echo "Input file $input_file does not exist." >&2; exit 2
-				# fi
-				#OPTIND=$((OPTIND+1)) 
 				shift
 			;;
 			help ) 
@@ -100,27 +99,20 @@ while getopts ":hi:o:-:" opt; do
 				exit 1
 			;;
 			* )
-				echo "Invalid option: $LONG_OPTARG"
-				usage
-				exit 1
+				die "Invalid option: $LONG_OPTARG"
 			;;
 
 		esac
 	;;
     	\? )
-		echo "Invalid option: $OPTARG"
-		usage
-		exit 1
+		die "Invalid option: $OPTARG"
       	;;
   esac
 done
 
-# Check if input file is entered
-# echo "Input file: $input_file"
 if [ !  "$input_file" ]
 then
-	echo "Error: Input file required."	
-	echo "Usage: mfpcluster -i <input_file>"
+	die "Input file required."	
 	exit 1
 fi
 
@@ -144,7 +136,6 @@ printf "MetaFunPrimer: Cluster\nInput file: $input_file\nRun started: $(date)\n"
 
 for perc_ident in $(seq 0.8 0.01 1); 
 do
-	# echo "Percent identity: $perc_ident"
 	echo "cd-hit -i ../$input_file -o $perc_ident.fa -c $perc_ident -n 5 -T 0 > /dev/null" 
 done > command.cluster.sh
 
@@ -164,7 +155,6 @@ done > cluster_counts.tsv
 
 echo "Calculating first-order differences > cluster_counts.tsv"
 
-# cat cluster_counts.tsv | awk -F "\t" 'BEGIN {OFS="\t"} {sum += $2; print $1 OFS $2 OFS sum}' > temp 
 
 cat cluster_counts.tsv | awk -F "\t" 'BEGIN {OFS="\t"} NR==1{max=$2} {left = (max - $2) / NR; NR==20 ? right = 0: right = (-$2) / (20 - NR) ; print $1 OFS $2 OFS left - right}' > temp
 mv temp cluster_counts.tsv
