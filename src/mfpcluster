@@ -76,7 +76,6 @@ while getopts ":hi:o:-:" opt; do
 		LONG_OPTARG="${OPTARG#*=}"
 		case $OPTARG in
 			in )	
-				echo "\"\$$OPTIND\""
 				eval "input_file=\"\$$OPTIND\""
 				if [ -z "$input_file" ]; then
 					die "Input file required for argument --in" 
