@@ -7,13 +7,31 @@ To install, begin by cloning the tools:
 
 .. code:: bash
 
-    git clone https://github.com/pommevilla/MetaFunPrimer.git
+    $ git clone https://github.com/pommevilla/MetaFunPrimer.git
 
-Then add `MetaFunPrimer/src` to your path by adding the following line to your bash_profile (or bashrc) file:
+Then add ``MetaFunPrimer/src`` to your path by adding the following line to your ``bash_profile`` (or ``bashrc``) file:
 
 .. code:: bash
     
-    export PATH=$PATH:path/to/MetaFunPrimer/src
+    $ export PATH=$PATH:path/to/MetaFunPrimer/src
+
+Finally, run ``check_reqs.sh`` to verify that that the required packages are installed and accessible to the pipeline:
+
+.. code:: bash
+
+    $ check_reqs.sh
+    MetaFunPrimer
+    =============
+    Checking if required programs are installed and executable.
+    
+    Checking diamond: OK.
+    Checking python: OK.
+    Checking blastx: OK.
+    Checking cd-hit: OK.
+    Checking clustalo-1.2.4-Ubuntu-x86_64: OK.
+    
+    All required packages found. MetaFunPrimer is ready for use.
+    See https://metafunprimer.readthedocs.io/en/latest/Tutorial.html for an introduction to the package.
 
 
 Requirements
