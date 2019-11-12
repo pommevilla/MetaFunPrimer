@@ -147,7 +147,7 @@ done > $shortdir.recommended_clusters.s_score
 
 echo "Number of recommended clusters when using s-score: $(cat $shortdir.recommended_clusters.s_score | wc -l)" >> $shortdir.log
 
-# Find thrsehold for fo difference
+# Find thrsehold based on abundance
 sort -nrk 3 "$shortdir.summary.tsv" | while read -r gene richness abundance s_score scum fodiff fcum
 do
     echo "$gene"
