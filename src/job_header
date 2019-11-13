@@ -6,17 +6,15 @@ cat << EOF
 #!/bin/bash
 
 ##### Resources Requested ##########
-#SBATCH --time=4:00:00            
+#SBATCH --time=48:00:00            
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=40
 #SBATCH --mem-per-cpu=16G
-#SBATCH --output=$1.out 
-#SBATCH --error=$1.err
 
 ########## Command Lines to Run ##########
 
 update_job_status $1 "Started \$(date +'%H:%M %m\/%d\/%y')"
 
-
+cat << EOF | /mnt/research/germs/softwares/parallel-20181022/src/parallel
 EOF
