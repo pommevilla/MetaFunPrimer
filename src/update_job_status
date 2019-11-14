@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Helper script to update the job checkilst.
+# Helper script used by mfpsearch to update the job checkilst.
 
 job_num=$1
 msg=$2
