@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Calculates the S score for the presence-richness of the samples
+# The sscore is the mean of the normalized presence and abundance of the gene
 
 input_file=$1
 
