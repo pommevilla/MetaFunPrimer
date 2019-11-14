@@ -31,5 +31,6 @@ Documentation
 Version History
 ---------------
 
-* V0.5 (11/14/2019): Beta release.
+* v0.51 (11/14/2019): Adding documentation.
+* v0.5 (11/14/2019): Beta release.
 
