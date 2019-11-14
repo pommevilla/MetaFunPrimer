@@ -1,8 +1,9 @@
 Troubleshooting and Support
 ===========================
 
+``MetaFunPrimer`` is still in active development. 
 
-``MetaFunPrimer`` is still in early development 
+If you run into any problems or have any questions, check to see if it has been answered below. If not, submit an issue on the `Github <https://github.com/pommevilla/MetaFunPrimer/issues>`_.
 
 Frequently Asked Questions
 --------------------------
