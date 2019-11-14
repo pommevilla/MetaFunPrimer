@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Checks to see if the packages required to run MetaFunPrimer packages are
-# available for use
+# available for use. Note: This is done through the hash function, so 
+# aliases may not evaluate correctly. If you are certain that the programs
+# in question are installed and callable, you can ignore the errors and pro-
+# ceed with using the pipeline.
 
 join () {
     local IFS="$1"
