@@ -4,6 +4,9 @@ This script count how many hit found ; cutoff = 80 percent identity
 usage: python make_count_diamond.py mgm4477807.3.fastq.m8 mgm4477807.3.fastq.m8
 python make_count_diamond.py *.m8 > gene_abundances.txt
 Counts the total abundance of the gene across all samples
+
+The abundance is the total number of times a gene is seen across all the samples
+
 """
 
 import sys
