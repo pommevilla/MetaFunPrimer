@@ -243,5 +243,5 @@ echo "get_primer_from_design.py $outdir.rdp > $outdir.primers" >> mfpdesign.$inp
 echo "get_pcr_product.py $outdir.fa $input_file > $outdir.products" >> mfpdesign.$input_file.sb
 
 printf "\nSubmitting job mfpdesign.$input_file.sb...\nJob number: " 
-#qsub mfpdesign.$input_file.sb
+qsub mfpdesign.$input_file.sb
 printf "Done."
