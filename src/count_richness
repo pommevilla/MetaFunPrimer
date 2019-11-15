@@ -3,7 +3,8 @@
 This script count how many hit found ; cutoff = 80 percent identity
 usage: python make_count_diamond.py mgm4477807.3.fastq.m8 mgm4477807.3.fastq.m8
 python make_count_sample_diamond.py *.m8 > gene_presence.txt
-Counts how many samples the gene is present in
+
+Richness is how many samples a gene appears in.
 """
 
 import sys
