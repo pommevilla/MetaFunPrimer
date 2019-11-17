@@ -1,10 +1,16 @@
 #!/usr/bin/python3 
 """
-This script count how many hit found ; cutoff = 80 percent identity
-usage: python make_count_diamond.py mgm4477807.3.fastq.m8 mgm4477807.3.fastq.m8
-python make_count_sample_diamond.py *.m8 > gene_presence.txt
+Quantifies the presence of the genes within a directory of *.m8 files.
+The presence of a gene is how many samples a gene appears in.
 
-Richness is how many samples a gene appears in.
+Usage:
+    count_presence dir
+
+Inputs:
+    - dir, a directory of .m8 files
+
+Outputs:
+    - two tab-separated columns of gene name and its presence
 """
 
 import sys
