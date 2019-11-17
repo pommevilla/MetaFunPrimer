@@ -120,7 +120,7 @@ echo "Input directory: $(readlink -f $input_dir)" >> $shortdir.log
 echo "Cumulative abundance threshold: $thresh" >> $shortdir.log
 echo "Summary file: $shortdir.summary.tsv" >> $shortdir.log
 
-join -j 1 -t '	' <(count_richness $input_dir | sort -k 1) <(count_abundance $input_dir | sort -k 1) > "$shortdir.summary.tsv"
+join -j 1 -t '	' <(count_presence $input_dir | sort -k 1) <(count_abundance $input_dir | sort -k 1) > "$shortdir.summary.tsv"
 
 # sorting by newS
 calc_sscore "$shortdir.summary.tsv" | sort -nrk 4 > temp 
