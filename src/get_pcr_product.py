@@ -19,8 +19,7 @@ import sys
 import reverse_complement
 import re
 
-def get_product(fpri,rpri,se,name):
-    print "target\tforward\tproduct_start\treverse\tproduct_end\tlength\tproduct"
+def get_product(fpri, rpri, se, name):
     product = ''
     psize = 0
     pfpri = ''
@@ -31,17 +30,16 @@ def get_product(fpri,rpri,se,name):
             for st in ma:
                 tempseq = se[st:]
                 for y in rpri.items():
-                    rma = [m.start() for m in re.finditer(y[0],tempseq)]
-                    if len(rma) > 0 :
+                    rma = [m.start() for m in re.finditer(y[0], tempseq)]
+                    if len(rma) > 0:
                         for rst in rma:
                             product = tempseq[:rst+len(y[0])]
                             psize = len(product)
                             pfpri = x[0]
                             prpri = y[0]
-                            print ">%s\t(%s)\t%s\t(%s)\t%s\t%s\t%s" %(name, fpri[pfpri], st, rpri[prpri], st+rst+len(y[0]),len(product), product)
-    return 0
+                            print(">{}\t{}\t{}\t{}\t{}\t{}\t{}".format(name, fpri[pfpri], st, rpri[prpri], st + rst + len(y[0]),len(product), product))
 
-def find_product(fpri,rpri,seqs):
+def find_product(fpri, rpri, seqs):
     name = ''
     flag = 0
     seq =[]
@@ -57,10 +55,9 @@ def find_product(fpri,rpri,seqs):
         else:
             seq.append(line.strip())
     se = ''.join(seq)
-    get_product(fpri,rpri,se,name)
+    get_product(fpri, rpri, se, name)
         
 def read_primer(prim):
-    swi = 0
     fpri = {}
     rpri = {}
     name = ""
@@ -71,7 +68,7 @@ def read_primer(prim):
             seq = line.strip()
             rseq = reverse_complement.reverse_complement(seq)
             if fpri.has_key(seq):
-                temp = fpri[seq] + ','+name
+                temp = fpri[seq] + ',' + name
                 fpri[seq] = temp
                 temp = rpri[rseq] + ',' +name
                 rpri[rseq] = temp
@@ -79,16 +76,16 @@ def read_primer(prim):
                 fpri[seq] = name
                 rpri[rseq] = name
 
-    return fpri,rpri
+    return fpri, rpri
             
 def main():
-    #read primer
-    prim = open(sys.argv[1],'r')
-    seqs = open(sys.argv[2],'r')
-    fpri,rpri = read_primer(prim)
+    # Read primers from primers.fa
+    prim = open(sys.argv[1], 'r')
+    fpri, rpri = read_primer(prim)
 
-    #find product
-    find_product(fpri,rpri,seqs)
+    # Find products of primers from sequences.fa
+    seqs = open(sys.argv[2], 'r')
+    find_product(fpri, rpri, seqs)
 
 if __name__ == '__main__':
     main()
