@@ -1,8 +1,19 @@
 #!/usr/bin/python
 
-#this scrip gives pcr product from given primers 
-#usage: python get_pcr_product.py primers geneseq.fa
-#example: python get_pcr_product.py 16s.full.primers.txt eskape.16s.fa > pcr_product.fa
+# Takes a fasta file of primers and performs in silico PCR on an another file
+# Usage: get_pcr_product.py primers.fa sequences.fa
+# Input:
+#   - primers.fa: a fasta file of primer sequences
+#   - sequences.fa: a fasta file
+# Output:
+#   Prints out the following tab-separated columns to stdin:
+#       - Sequence amplified
+#       - The name of the forward primer
+#       - The start position of the forward primer on the amplified sequence
+#       - The name of the reverse primer
+#       - The start position of the reverse primer on the amplified sequence
+#       - The length of the product
+#       - The amplified sequence    
 
 import sys
 import reverse_complement
