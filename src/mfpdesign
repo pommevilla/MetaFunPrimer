@@ -141,10 +141,9 @@ while getopts ":hi:o:-:" opt; do
 				if [ -z "input_file" ]; then
 					die "Input file required for argument --in"
 				fi
-				# if [ ! -f "input_file" ]; then
-				# 	echo "Input file $input_file does not exist." >&2; exit 2
-				# fi
-				#OPTIND=$((OPTIND+1)) 
+				if [ ! -f "input_file" ]; then
+                    die "Input file $input_file does not exist." 
+				fi
 				shift
 			;;
 			out )	
@@ -152,9 +151,9 @@ while getopts ":hi:o:-:" opt; do
 				if [ -z "outdir" ]; then
 					die "Output directory required for argument --out" 
 				fi
-				# if [ ! -f "input_file" ]; then
-				# 	echo "Input file $input_file does not exist." >&2; exit 2
-				# fi
+				if [ ! -f "input_file" ]; then
+					die "Input file $input_file does not exist." 
+				fi
 				shift
 			;;
 			assay_max )
@@ -207,24 +206,17 @@ while getopts ":hi:o:-:" opt; do
       	;;
   esac
 done
-# Check if input file is entered
-# if [ !  "$input_file" ]
-# then
-#     echo "Error: Input file required."  
-#     echo "Usage: mfpcluster -i <input_file>"
-#     exit 1
-# fi
 
-# Check outdirectory - if none supplied, automatically make one
+# Check if input file is entered
+if [ !  "$input_file" ]
+then
+    die "Input file required."
+fi
+
 if [ ! "$outdir" ]
 then
     outdir="$input_file"
 fi
-
-# if [ ! -d "$outdir" ]
-# then
-#     mkdir $outdir
-# fi
 
 echo "Input file: $input_file"
 echo "Output file prefix: $outdir"
