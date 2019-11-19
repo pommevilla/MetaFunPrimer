@@ -38,9 +38,10 @@ ${bold}Inputs:${normal}
 	- input_fasta: An input file of aligned sequences in fa or fasta format
 
 ${bold}Outputs:${normal}
-	- <input_fasta>.out: the raw output of RDP's EcoFunPrimer
-	- <input_fasta>.fa: formatted fasta file of primers
-	- <input_fasta>.products: products formed by primers against original targets
+	- <input_fasta>.rdp: the raw output of RDP's EcoFunPrimer
+	- <input_fasta>.primers: formatted fasta file of primers
+	- mfpdesign.<input_fasta>.sb: a slurm script for the primer design function
+
 ${bold}Example:${normal}
 	mfpcluster -i fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa 
 
@@ -115,8 +116,8 @@ if (($# == 0)); then
 fi
 
 assay_max=30 
-min_product_length=200
-max_product_length=275
+min_product_length=70
+max_product_length=250
 min_oligo_length=18
 max_oligo_length=30
 
@@ -207,7 +208,6 @@ while getopts ":hi:o:-:" opt; do
   esac
 done
 
-# Check if input file is entered
 if [ !  "$input_file" ]
 then
     die "Input file required."
