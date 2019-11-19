@@ -29,7 +29,7 @@ ${bold}MetaFunPrimer: Design${normal}
 	Designs primers using RDP's EcoFunPrimer and formats them into fasta files.
 
 	Default parameters are set to design primers with product lengths between 
-	200-275 bp. 	
+	70-250 bp. 	
 
 ${bold}Usage:${normal}
 	mfpdesign -i <input_fasta> [options...]
@@ -38,9 +38,10 @@ ${bold}Inputs:${normal}
 	- input_fasta: An input file of aligned sequences in fa or fasta format
 
 ${bold}Outputs:${normal}
-	- <input_fasta>.out: the raw output of RDP's EcoFunPrimer
-	- <input_fasta>.fa: formatted fasta file of primers
-	- <input_fasta>.products: products formed by primers against original targets
+	- <input_fasta>.rdp: the raw output of RDP's EcoFunPrimer
+	- <input_fasta>.primers: formatted fasta file of primers
+	- mfpdesign.<input_fasta>.sb: a slurm script for the primer design function
+
 ${bold}Example:${normal}
 	mfpcluster -i fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa 
 
@@ -115,8 +116,8 @@ if (($# == 0)); then
 fi
 
 assay_max=30 
-min_product_length=200
-max_product_length=275
+min_product_length=70
+max_product_length=250
 min_oligo_length=18
 max_oligo_length=30
 
@@ -141,10 +142,9 @@ while getopts ":hi:o:-:" opt; do
 				if [ -z "input_file" ]; then
 					die "Input file required for argument --in"
 				fi
-				# if [ ! -f "input_file" ]; then
-				# 	echo "Input file $input_file does not exist." >&2; exit 2
-				# fi
-				#OPTIND=$((OPTIND+1)) 
+				if [ ! -f "input_file" ]; then
+                    die "Input file $input_file does not exist." 
+				fi
 				shift
 			;;
 			out )	
@@ -152,9 +152,9 @@ while getopts ":hi:o:-:" opt; do
 				if [ -z "outdir" ]; then
 					die "Output directory required for argument --out" 
 				fi
-				# if [ ! -f "input_file" ]; then
-				# 	echo "Input file $input_file does not exist." >&2; exit 2
-				# fi
+				if [ ! -f "input_file" ]; then
+					die "Input file $input_file does not exist." 
+				fi
 				shift
 			;;
 			assay_max )
@@ -207,41 +207,30 @@ while getopts ":hi:o:-:" opt; do
       	;;
   esac
 done
-# Check if input file is entered
-# if [ !  "$input_file" ]
-# then
-#     echo "Error: Input file required."  
-#     echo "Usage: mfpcluster -i <input_file>"
-#     exit 1
-# fi
 
-# Check outdirectory - if none supplied, automatically make one
-if [ ! "$outdir" ]
+if [ !  "$input_file" ]
 then
-    outdir="$input_file.primers"
+    die "Input file required."
 fi
 
-# if [ ! -d "$outdir" ]
-# then
-#     mkdir $outdir
-# fi
+if [ ! "$outdir" ]
+then
+    outdir="$input_file"
+fi
 
 echo "Input file: $input_file"
-echo "Output files: $outdir"
+echo "Output file prefix: $outdir"
 echo "Maximum assays per target: $assay_max"
 echo "Product size range: ($min_product_length, $max_product_length)"
 echo "Oligo size range: ($min_oligo_length, $max_oligo_length)"
 
 head <(job_header) > mfpdesign.$input_file.sb
 
-echo "java -jar /mnt/research/germs/softwares/Primer_Design/PrimerDesign_latest/PrimerDesign.jar -subcommand select -input $input_file -productLengthMin $min_product_length -productLengthMax $max_product_length -oligoMinSize $min_oligo_length -oligoMaxSize $max_oligo_length -maxMismatches 0 -tempMin 55 -tempMax 63 -hairMax 24 -homoMax 35 -isTreeWeightNeeded f -isHenikoffWeightNeeded f -os linux -output $outdir.rdp -assayMax $assay_max -degenMax 6 -NoTEndFilter t -NoPoly3GCFilter t -PolyRunFilter 4 -GCFilterMin 0.15 -GCFilterMax 0.8" >> mfpdesign.$input_file.sb
+echo "java -jar /mnt/research/germs/softwares/Primer_Design/PrimerDesign_latest/PrimerDesign.jar -subcommand select -input $input_file -productLengthMin $min_product_length -productLengthMax $max_product_length -oligoMinSize $min_oligo_length -oligoMaxSize $max_oligo_length -maxMismatches 0 -tempMin 55 -tempMax 63 -hairMax 24 -homoMax 35 -isTreeWeightNeeded f -isHenikoffWeightNeeded f -os linux -output $outdir.rdp -assayMax $assay_max -degenMax 0 -NoTEndFilter t -NoPoly3GCFilter t -PolyRunFilter 4 -GCFilterMin 0.15 -GCFilterMax 0.8" >> mfpdesign.$input_file.sb
 
 # To do: remove trailing .rdp from outdir.fa
 echo "get_primer_from_design.py $outdir.rdp > $outdir.primers" >> mfpdesign.$input_file.sb
 
-# Get products against original input
-echo "get_pcr_product.py $outdir.fa $input_file > $outdir.products" >> mfpdesign.$input_file.sb
-
-printf "\nSubmitting job mfpdesign.$input_file.sb...\nJob number: " 
+echo "Submitting job mfpdesign.$input_file.sb..." 
 qsub mfpdesign.$input_file.sb
-printf "Done."
+echo "Done."
