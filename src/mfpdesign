@@ -29,7 +29,7 @@ ${bold}MetaFunPrimer: Design${normal}
 	Designs primers using RDP's EcoFunPrimer and formats them into fasta files.
 
 	Default parameters are set to design primers with product lengths between 
-	200-275 bp. 	
+	70-250 bp. 	
 
 ${bold}Usage:${normal}
 	mfpdesign -i <input_fasta> [options...]
