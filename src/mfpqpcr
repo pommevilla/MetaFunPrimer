@@ -1,0 +1,197 @@
+#!/bin/bash
+
+# Prepares blast jobs to search for sequences within environments
+# Usage: mfpqpcr -i protein_fasta -e env_directory [options,,,]
+# Input:
+#	primer_targets: an aligned fasta file with N characters removed
+#	env_directory: a directory containing the metagenomes to search against.
+# Outputs:
+#	primer_targets.primers.out: the raw output from RDP's PrimerDesign software
+#	primer_targets.primers.fa: the probes from RDP's PrimerDesign software formatted
+# 		as a fasta file
+# Example: bash design_primers.sh abundant_genes_nucleotide.aligned.noN.fa 
+
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+primer_targets=$1
+
+
+die() {
+	printf 'ERROR: %s\n' "$1" 
+    printf 'See mfpqpcr -h for help.' >&2
+	exit 1
+}
+
+usage() {
+cat << EOF 
+
+${bold}MetaFunPrimer: qPCR${normal}
+    Performs in silico qPCR to determine effectiveness and specificity of
+	of primers.
+
+${bold}Usage:${normal}
+	mfpqpcr -i <primers.fa> -e <env_directory> [options...]
+
+${bold}Inputs:${normal}
+	- primers.fa: Fasta format file containing primer pairs for testing
+	- env_directory: Directory containing reference files
+
+${bold}Outputs:${normal}
+
+${bold}Example:${normal}
+	mfpcluster -i fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa 
+
+${bold}Options:${normal}
+	${bold}-i, --in <filename>${normal}	
+		Fasta format file containing primer pairs for testing
+	${bold}-b, --bg <filename>${normal}	
+		Fasta format file containing reference sequences
+	${bold}-o, --out <filename>${normal}	
+		String filename for where to save results. Defaults to <input_fasta>.products
+	${bold}-m, --mode [e, s]${normal}	
+		String filename for where to save results. Defaults to <input_fasta>.products
+	${bold}-h, --help${normal}	
+		Display this message
+EOF
+}
+
+if (($# == 0)); then
+	usage
+	exit 1
+fi
+
+
+while getopts ":hi:o:b:e:-:" opt; do
+  case ${opt} in
+	h ) 
+		usage
+		exit 1
+    ;;
+	o )
+		outdir=$OPTARG
+	;;	
+	i )
+		input_file=$OPTARG
+	;;
+	e ) 
+		env_dir=$OPTARG
+	;;
+	- )	
+		LONG_OPTARG="${OPTARG#*\s}"
+		case ${OPTARG} in
+			in )
+				eval "input_file=\"\$$OPTIND\""
+				if [ -z "$input_file" ]; then
+					die "Input file required for argument --in"
+				fi
+				if [ ! -f "$input_file" ]; then
+					die "Input file $input_file does not exist." 
+				fi
+				shift
+			;;
+			env )
+				eval "env_dir=\"\$$OPTIND\""
+				if [ -z "$env_dir" ]; then
+					die "Input required for argument --env"
+				fi
+				# if [ ! -f "env_dir" ]; then
+				# 	echo "Input file $env_dir does not exist." >&2; exit 2
+				# fi
+				shift
+			;;
+			out )	
+				eval "outdir=\"\$$OPTIND\""
+				if [ -z "$outdir" ]; then
+					die "Output directory required for argument --out" 
+				fi
+				# if [ ! -f "input_file" ]; then
+				# 	echo "Input file $input_file does not exist." >&2; exit 2
+				# fi
+				shift
+			;;
+			help ) 
+				usage
+				exit 1
+			;;
+			* )
+				die "Invalid option: $LONG_OPTARG"
+			;;
+
+		esac
+	;;
+    	\? )
+		    die "Invalid option: $OPTARG"
+      	;;
+  esac
+done
+
+if [ ! "$input_file" ]; then
+    die "Input file (protein fasta) required [-i | --in]"
+fi
+
+if [ ! "$outdir" ]
+then
+    outdir="$input_file.diamond_results"
+fi
+
+if [ ! "$env_dir" ]
+then
+	die "Reference directory required [-e | --env]"
+fi
+
+if [ ! -d "$env_dir" ]
+then
+    die "Reference directory $env_dir does not exist."
+fi
+
+
+echo "Input: $input_file"
+echo "Environment: $env_dir"
+echo "Output directory: $outdir"
+
+if [ ! -d "$outdir" ]
+then
+	mkdir $outdir
+fi
+cd $outdir
+
+printf "\nMaking DIAMOND database...\n\n"
+
+diamond makedb --in ../$input_file -d $input_file
+
+printf "\nDatabase created."
+
+mkdir diamond_commands
+cd diamond_commands
+
+printf "\nCreating job commands..."
+
+for fin in $env_dir/*.{fasta,fa,fastq,faa}
+do
+	echo "diamond blastx --db ../$input_file --query $fin --out ../$(basename $fin).m8 --id 97"
+done > commands.diamond.txt
+
+split -a 3 -dl 20 --additional-suffix=.sb commands.diamond.txt job.diamond.
+
+for fin in *.sb
+do
+	current_job=$(echo $fin | cut -d '.' -f 3)
+	printf "%s\n\n%s\n%s\n\n" "$(job_header $current_job)" "$(cat $fin)" "EOF" > $fin
+	echo "update_job_status $current_job \"Finished: \$(date +'%H:%M %m\/%d\/%y')\"" >> $fin
+	echo "$current_job" >> job.checklist.tsv
+done
+
+printf "Done."
+echo "Submitting jobs..."
+
+for fin in *.sb
+do 
+	current_job=$(echo $fin | cut -d '.' -f 3)
+	qsub $fin
+	update_job_status $current_job "Submitted: $(date +'%H:%M %m\/%d\/%y')" 
+	sleep 0.25
+done
+
+echo "Done."
