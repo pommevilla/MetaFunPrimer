@@ -231,9 +231,6 @@ echo "java -jar /mnt/research/germs/softwares/Primer_Design/PrimerDesign_latest/
 # To do: remove trailing .rdp from outdir.fa
 echo "get_primer_from_design.py $outdir.rdp > $outdir.primers" >> mfpdesign.$input_file.sb
 
-# Get products against original input
-echo "get_pcr_product.py $outdir.fa $input_file > $outdir.products" >> mfpdesign.$input_file.sb
-
-printf "\nSubmitting job mfpdesign.$input_file.sb...\nJob number: " 
+echo "Submitting job mfpdesign.$input_file.sb..." 
 qsub mfpdesign.$input_file.sb
-printf "Done."
+echo "Done."
