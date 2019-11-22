@@ -18,7 +18,7 @@ echo "============="
 
 printf "Checking if required programs are installed and executable.\n\n"
 
-requirements="diamond python blastx cd-hit clustalo-1.2.4-Ubuntu-x86_64"
+requirements="diamond python blastx cd-hit clustalo-1.2.4-Ubuntu-x86_64 parallel"
 
 missing_reqs=()
 for req in $requirements
