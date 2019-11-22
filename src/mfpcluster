@@ -141,7 +141,7 @@ done > command.cluster.sh
 echo "Beginning clustering..."
 
 # TODO: Need to silence parallel notice manually for now. Fix later.
-cat command.cluster.sh | /mnt/research/germs/softwares/parallel-20181022/src/parallel 
+cat command.cluster.sh | parallel
 
 echo "Clustering done."
 echo ""

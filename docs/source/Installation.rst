@@ -29,6 +29,7 @@ Finally, run ``check_reqs.sh`` to verify that that the required packages are ins
     Checking blastx: OK.
     Checking cd-hit: OK.
     Checking clustalo-1.2.4-Ubuntu-x86_64: OK.
+    Checking parallel: OK.
     
     All required packages found. MetaFunPrimer is ready for use.
     See https://metafunprimer.readthedocs.io/en/latest/Tutorial.html for an introduction to the package.
@@ -43,5 +44,6 @@ Have the following installed on your system before installing MetaFunPrimer. The
 * `Diamond (v0.9.14) <https://github.com/bbuchfink/diamond>`_
 * `Clustal Omega (v1.2.4) <http://www.clustal.org/omega/>`_
 * `BLAST (v2.9.1+) <https://www.ncbi.nlm.nih.gov/books/NBK279671/>`_
+* `Parallel <https://www.gnu.org/software/parallel/>`_
 * `EcoFunPrimer <https://github.com/rdpstaff/EcoFunPrimer>`_
 
