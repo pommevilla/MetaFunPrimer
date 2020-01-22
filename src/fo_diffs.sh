@@ -4,12 +4,12 @@ input_file=$1
 info=$(awk '{
     if(NR==1)
     {
-        min = $3
-        max = $3
+        min = $5
+        max = $5
     }
-    if($3 < min)
+    if($5 < min)
     {
-        min = $3
+        min = $5
     }
      
 }
@@ -25,8 +25,8 @@ BEGIN {
     OFS = "\t"
 } 
 {
-    left = (max - $3) / NR;
-    NR==20 ? right = 0: right = ($3 - min) / (20 - NR) 
+    left = (max - $5) / NR;
+    NR==20 ? right = 0: right = ($5 - min) / (20 - NR) 
     print $0 OFS left - right
 
 }' $input_file
