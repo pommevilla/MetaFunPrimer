@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Prepares blast jobs to search for sequences within environments
+# Performs in silico PCR to determine effectiveness and specificity
 # Usage: mfpqpcr -i protein_fasta -e env_directory [options,,,]
 # Input:
 #	primer_targets: an aligned fasta file with N characters removed
@@ -157,41 +157,3 @@ then
 fi
 cd $outdir
 
-printf "\nMaking DIAMOND database...\n\n"
-
-diamond makedb --in ../$input_file -d $input_file
-
-printf "\nDatabase created."
-
-mkdir diamond_commands
-cd diamond_commands
-
-printf "\nCreating job commands..."
-
-for fin in $env_dir/*.{fasta,fa,fastq,faa}
-do
-	echo "diamond blastx --db ../$input_file --query $fin --out ../$(basename $fin).m8 --id 97"
-done > commands.diamond.txt
-
-split -a 3 -dl 20 --additional-suffix=.sb commands.diamond.txt job.diamond.
-
-for fin in *.sb
-do
-	current_job=$(echo $fin | cut -d '.' -f 3)
-	printf "%s\n\n%s\n%s\n\n" "$(job_header $current_job)" "$(cat $fin)" "EOF" > $fin
-	echo "update_job_status $current_job \"Finished: \$(date +'%H:%M %m\/%d\/%y')\"" >> $fin
-	echo "$current_job" >> job.checklist.tsv
-done
-
-printf "Done."
-echo "Submitting jobs..."
-
-for fin in *.sb
-do 
-	current_job=$(echo $fin | cut -d '.' -f 3)
-	qsub $fin
-	update_job_status $current_job "Submitted: $(date +'%H:%M %m\/%d\/%y')" 
-	sleep 0.25
-done
-
-echo "Done."
