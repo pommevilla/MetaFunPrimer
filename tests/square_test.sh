@@ -33,4 +33,4 @@ oneTimeTearDown(){
     rm temp_file
 }
 
-. ../shunit2-2.1.7/shunit2
+. shunit2-2.1.7/shunit2
