@@ -3,7 +3,7 @@
 shopt -s expand_aliases
 
 oneTimeSetUp(){
-    echo "Something dumb" > temp_file
+    echo "Testing testing..." > temp_file
 }
 
 testEquality() {
