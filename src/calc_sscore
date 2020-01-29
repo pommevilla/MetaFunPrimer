@@ -3,32 +3,37 @@
 # Calculates the S score for the presence-richness of the samples
 # The sscore is the mean of the normalized presence and abundance of the gene
 
+# Modified version: Used standardization to rescale data, which will lead to negative values of the new calculated s-score; Now we are using 
+#		   min-max scaling method to rescale data. So that the values are between 0 to 1	Jia 1/28/2020
+
 input_file=$1
 
-info=$(awk '{
-    for(i = 2; i <= NF; i++)
-    { 
-        sums[i] += $i
-        sums_squared[i] += ($i)^2
-    }
+line1=$(head -n1 $input_file)
+col2=$(awk '{print $2}' <<< "${line1}")
+col3=$(awk '{print $3}' <<< "${line1}")
+
+info=$(awk -v minCol2=$col2 -v maxCol2=$col2 -v minCol3=$col3 -v maxCol3=$col3 '{
+	if ($2 < minCol2) minCol2=$2;
+	if ($2 > maxCol2) maxCol2=$2;
+	if ($3 < minCol3) minCol3=$3;
+	if ($3 > maxCol3) maxCol3=$3;
 }
 END {
-    for(i = 2; i <= NF; i++)
-    { 
-        means[i - 1] = sums[i] / NR;
-        std_devs[i - 1]=sqrt((sums_squared[i]-sums[i]^2/NR)/NR)
-    }
-    printf "%s,%s,%s,%s", means[1],std_devs[1],means[2],std_devs[2] 
+	printf "%s,%s,%s,%s", minCol2, maxCol2, minCol3, maxCol3
 }' $input_file)
+#echo $info
 
 awk -v var=$info '
 BEGIN{
-    split(var, info, ",")
-    OFS="\t"
+	split(var, info, ",")
+	OFS="\t"
 }
 {  
-    nR = ($2 - info[1]) / info[2] 
-    nA = ($3 - info[3]) / info[4]
-    nS = (nA + nR) / 2
-    print $1 OFS $2 OFS $3 OFS substr(nS, 1, 5)
+	nR = ($2 - info[1]) / (info[2] - info[1])
+	nA = ($3 - info[3]) / (info[4] - info[3])
+	nS = (nA + nR) / 2
+	nS = sprintf("%.5f",nS)
+	print $1 OFS $2 OFS $3 OFS nS
 }' $input_file
+
+
