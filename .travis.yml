@@ -6,3 +6,4 @@ before_script:
 script:
     - bash tests/simple_tests/equality_test.sh
     - bash tests/simple_tests/square_test.sh
+    - bash tests/util_tests/calc_sscore_test.sh
