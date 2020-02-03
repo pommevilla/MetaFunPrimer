@@ -8,6 +8,7 @@
 
 input_file=$1
 
+
 line1=$(head -n1 $input_file)
 col2=$(awk '{print $2}' <<< "${line1}")
 col3=$(awk '{print $3}' <<< "${line1}")
