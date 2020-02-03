@@ -1,5 +1,7 @@
 # MetaFunPrimer
 
+[![Build Status](https://travis-ci.com/pommevilla/MetaFunPrimer.svg?branch=master)](https://travis-ci.com/pommevilla/MetaFunPrimer)
+
 A pipeline to design high-throughput qPCR primers.
 
 ## Programs required (version used in original pipeline)

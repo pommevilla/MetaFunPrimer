@@ -6,14 +6,14 @@
 input_file=$1
 
 info=$(awk '{
-    for(i = 2; i <= NF; i++)
+    for(i = 2; i <= 3; i++)
     { 
         sums[i] += $i
         sums_squared[i] += ($i)^2
     }
 }
 END {
-    for(i = 2; i <= NF; i++)
+    for(i = 2; i <= 3; i++)
     { 
         means[i - 1] = sums[i] / NR;
         std_devs[i - 1]=sqrt((sums_squared[i]-sums[i]^2/NR)/NR)

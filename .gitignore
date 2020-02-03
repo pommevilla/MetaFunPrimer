@@ -1,1 +1,5 @@
+# For the various Python utilities
 *.pyc
+
+# For local testing
+shunit2-2.1.7/
