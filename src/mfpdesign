@@ -116,7 +116,7 @@ if (($# == 0)); then
 fi
 
 assay_max=30 
-min_product_length=70
+min_product_length=200
 max_product_length=250
 min_oligo_length=18
 max_oligo_length=30
