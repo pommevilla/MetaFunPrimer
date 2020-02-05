@@ -11,6 +11,7 @@ A pipeline to design high-throughput qPCR primers.
 * Clustal Omega (v1.2.4)
 * BLAST (v2.7.1+)
 * EcoFunPrimer
+* Parallel
 
 ## Instructions
 
@@ -18,8 +19,4 @@ MetaFunPrimer requires the following input files:
 
 * Nucleotide and protein sequences of the genes of interest
 * Metagenome files for your environment of interest
-
-## Sample
-
-
 
