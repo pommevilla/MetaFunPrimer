@@ -105,7 +105,7 @@ do
 done > abundant.$shortdir
 
 head <(job_header) > align.abundant.$shortdir.sb
-echo "/mnt/research/germs/softwares/clustalo-1.2.4-Ubuntu-x86_64 -i abundant.$shortdir -o aligned.abundant.$shortdir" >> align.abundant.$shortdir.sb
+echo "clustalo-1.2.4-Ubuntu-x86_64 -i abundant.$shortdir -o aligned.abundant.$shortdir" >> align.abundant.$shortdir.sb
 echo "sed '/^>/! s/[nN]/-/g' aligned.abundant.$shortdir > prepped.$shortdir" >> align.abundant.$shortdir.sb
 qsub align.abundant.$shortdir.sb
 
