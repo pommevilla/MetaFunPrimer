@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Checks to see if the packages required to run MetaFunPrimer packages are
-# available for use
+# available for use. Note: This is done through the hash function, so 
+# aliases may not evaluate correctly. If you are certain that the programs
+# in question are installed and callable, you can ignore the errors and pro-
+# ceed with using the pipeline.
 
 join () {
     local IFS="$1"
@@ -15,7 +18,7 @@ echo "============="
 
 printf "Checking if required programs are installed and executable.\n\n"
 
-requirements="diamond python blastx cd-hit clustalo-1.2.4-Ubuntu-x86_64"
+requirements="diamond python blastx cd-hit clustalo-1.2.4-Ubuntu-x86_64 parallel"
 
 missing_reqs=()
 for req in $requirements

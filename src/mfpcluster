@@ -141,7 +141,7 @@ done > command.cluster.sh
 echo "Beginning clustering..."
 
 # TODO: Need to silence parallel notice manually for now. Fix later.
-cat command.cluster.sh | /mnt/research/germs/softwares/parallel-20181022/src/parallel 
+cat command.cluster.sh | parallel
 
 echo "Clustering done."
 echo ""
@@ -161,9 +161,9 @@ mv temp cluster_counts.tsv
 # Currently gets max first-order differenceq
 opt_info=( $(awk '{if(max<$3){max=$3;opt_perc=$fin;num_clusters=$2}}END{print opt_perc num_clusters}' cluster_counts.tsv) )
 
-echo "Optimum percentage: ${opt_info[0]}"
+echo "Optimum percentage (as calculated by first-order difference): ${opt_info[0]}"
 echo "Number of clusters: ${opt_info[1]}"
 
-printf "Recommended similarity: %s\nNumber of clusters: %s\n" "${opt_info[0]}" "${opt_info[1]}" >> $input_file.log
+printf "Recommended similarity (as calculated by first-order difference): %s\nNumber of clusters: %s\n" "${opt_info[0]}" "${opt_info[1]}" >> $input_file.log
 echo "Recommended fasta file:" >> $input_file.log
 echo "Run complete: $(date)" >> $input_file.log
