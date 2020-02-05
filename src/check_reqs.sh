@@ -38,7 +38,7 @@ echo ""
 if [ "${#missing_reqs[@]}" -eq 0 ]
 then
     echo "All required packages found. MetaFunPrimer is ready for use."
-    echo "See https://metafunprimer.readthedocs.io/en/latest/Tutorial.html for an introduction to the package."
+    echo "See https://metafunprimer.readthedocs.io/en/latest/Tutorial.html for an introduction to the pipeline."
 else
     printf "Missing requirements: "
     join , ${missing_reqs[@]}
