@@ -9,13 +9,13 @@ test_columns(){
 
     while read -r actual test
     do
-#        if (( $(echo "$actual == $test" | bc -l) )); then
+        # If the difference is less than the rounding error, then we consider the
+        # values to be the same.
         if (( $(echo "$actual - $test > 0.00001" | bc -l)  )); then
            TEST_STATUS=1
            echo "$actual $test $(echo "$actual - $test" | bc)"
         fi
     done < <(echo "$ACTUAL_TEST_COLUMNS")
-    echo "Test status is: $TEST_STATUS"
     assertTrue "Test failed somewhere" "$TEST_STATUS"
 } 
   
