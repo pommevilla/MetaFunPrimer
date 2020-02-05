@@ -18,7 +18,7 @@ echo "============="
 
 printf "Checking if required programs are installed and executable.\n\n"
 
-requirements="diamond python blastx cd-hit clustalo-1.2.4-Ubuntu-x86_64"
+requirements="diamond python blastx cd-hit clustalo-1.2.4-Ubuntu-x86_64 parallel"
 
 missing_reqs=()
 for req in $requirements
@@ -38,7 +38,7 @@ echo ""
 if [ "${#missing_reqs[@]}" -eq 0 ]
 then
     echo "All required packages found. MetaFunPrimer is ready for use."
-    echo "See https://metafunprimer.readthedocs.io/en/latest/Tutorial.html for an introduction to the package."
+    echo "See https://metafunprimer.readthedocs.io/en/latest/Tutorial.html for an introduction to the pipeline."
 else
     printf "Missing requirements: "
     join , ${missing_reqs[@]}

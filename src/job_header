@@ -16,5 +16,5 @@ cat << EOF
 
 update_job_status $1 "Started \$(date +'%H:%M %m\/%d\/%y')"
 
-cat << EOF | /mnt/research/germs/softwares/parallel-20181022/src/parallel
+cat << EOF | parallel
 EOF

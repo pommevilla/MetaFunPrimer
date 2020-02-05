@@ -1,4 +1,4 @@
-#!/bin/bash
+#/bin/bash
 
 # Summarizes results of a directory of *.m8 files.
 # Usage: mfpdesign -i protein_fasta -e env_directory [options,,,]
@@ -125,29 +125,44 @@ join -j 1 -t '	' <(count_presence $input_dir | sort -k 1) <(count_abundance $inp
 # sorting by newS
 calc_sscore "$shortdir.summary.tsv" | sort -nrk 4 > temp 
 
-cumulative_abundance temp > "$shortdir.summary.tsv"  
+# I updated this part here to use the modified version of function cumulative_abundance to calculate the cumulative percentage for s-score (column4). (Jia 01_14_2020)
+cumulative_abundance temp 4 > "$shortdir.summary.tsv"  
 
-# sorting by fo_diff
-sort -nrk 3 "$shortdir.summary.tsv" > temp 
+#TODO: sorting by fo_diff; I changed it to sort based on col4 (s-score) instead of col3 (abundancce); (Jia 01_14_2020)
+sort -nrk 4 "$shortdir.summary.tsv" > temp 
 
-fo_diffs temp > "$shortdir.summary.tsv" 
- cumulative_abundance "$shortdir.summary.tsv" > temp  && mv temp "$shortdir.summary.tsv"
+#TODO: Need to discuss with Paul: use the first order differential on s-score? then do not need to calculate the cumulative of s-score again? just get the elbow point? (Jia 01_14_2020) 
+
+#TODO: I changed fo_diffs to calculate first order difference for input column (eg: s_score) instead of col3 (abundance)        (Jia 01_14_2020)
+fo_diffs temp 4 > "$shortdir.summary.tsv" 
+#calculate cumulative abundance (column 3)
+cumulative_abundance "$shortdir.summary.tsv" 3 > temp  && mv temp "$shortdir.summary.tsv"
+
+# columns up to now: geneName;  num_of_samples; num_of_seqs; s_score; cumu_s_score; fo_diffs_s_score; cumu_abundance
+
+
 
 # Make recommendations
 
 # Find threshold for S score
 #TODO: Finish the separate thresholding utility with user input threshold and sorting column
-sort -nrk 4 "$shortdir.summary.tsv" | while read -r gene richness abundance s_score scum fodiff fcum
-do
-    echo "$gene"
-    if [[ $scum > 0.80 ]]; then
-        break
-    fi
-done > $shortdir.recommended_clusters.s_score  
+#sort -nrk 4 "$shortdir.summary.tsv" | while read -r gene richness abundance s_score scum fodiff fcum
+#do
+#    echo "$gene"
+#    if [[ $scum > 0.80 ]]; then
+#        break
+#    fi
+#done > $shortdir.recommended_clusters.s_score
+#TODO: thresh_tsv can take user input arguments  (Jia 01_14_2020)
+thresh_tsv "$shortdir.summary.tsv" 4 5 $thresh > $shortdir.recommended_clusters.s_score
 
 echo "Number of recommended clusters when using s-score: $(cat $shortdir.recommended_clusters.s_score | wc -l)" >> $shortdir.log
+echo "Recommended clusters cover $(tail -1 $shortdir.recommended_clusters.s_score | grep -f - $shortdir.summary.tsv | cut -f 7) cumulative abundance." >> $shortdir.log
+
+
 
 # Find thrsehold based on abundance
+# TODO: discuss with Paul about this  (Jia 01_14_2020)
 sort -nrk 3 "$shortdir.summary.tsv" | while read -r gene richness abundance s_score scum fodiff fcum
 do
     echo "$gene"
