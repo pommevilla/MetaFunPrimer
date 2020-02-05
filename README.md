@@ -6,7 +6,9 @@ A pipeline to design high-throughput qPCR primers to target environmentally abun
 
 *Latest version: v0.90, 2/5/2020*
 
-## Programs required (version used in original pipeline)
+## Programs required
+
+*The versions listed after each program are those used in the testing of the pipeline.*  
 
 * CD-HIT (v4.6.8)
 * Diamond (v0.9.14)
