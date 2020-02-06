@@ -117,7 +117,7 @@ shortdir=$(readlink -f $input_dir | rev | cut -d '/' -f 1 | rev)
 
 echo "MetaFunPrimer: Count" > $shortdir.log
 echo "Input directory: $(readlink -f $input_dir)" >> $shortdir.log
-echo "Cumulative abundance threshold: $thresh" >> $shortdir.log
+echo "Cumulative s-score threshold: $thresh" >> $shortdir.log
 echo "Summary file: $shortdir.summary.tsv" >> $shortdir.log
 
 join -j 1 -t '	' <(count_presence $input_dir | sort -k 1) <(count_abundance $input_dir | sort -k 1) > "$shortdir.summary.tsv"
