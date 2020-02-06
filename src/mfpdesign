@@ -39,7 +39,7 @@ ${bold}Inputs:${normal}
 
 ${bold}Outputs:${normal}
 	- <input_fasta>.rdp: the raw output of RDP's EcoFunPrimer
-	- <input_fasta>.primers: formatted fasta file of primers
+	- <input_fasta>.fa: formatted fasta file of primers
 	- mfpdesign.<input_fasta>.sb: a slurm script for the primer design function
 
 ${bold}Example:${normal}
