@@ -165,5 +165,6 @@ echo "Optimum percentage (as calculated by first-order difference): ${opt_info[0
 echo "Number of clusters: ${opt_info[1]}"
 
 printf "Recommended similarity (as calculated by first-order difference): %s\nNumber of clusters: %s\n" "${opt_info[0]}" "${opt_info[1]}" >> $input_file.log
-echo "Recommended fasta file:" >> $input_file.log
+echo "Recommended fasta file: ${opt_info[0]}.fa" >> $input_file.log
+echo "Recommended next command: mfpcount -i ${opt_info[0]}.fa" >> $input_file.log
 echo "Run complete: $(date)" >> $input_file.log
