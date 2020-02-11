@@ -68,16 +68,55 @@ The next step in the pipeline is to use ``mfpsearch`` to  quantify the presence 
 
     #SBATCH -A <hpc_account>
 
+The ``job.checklist.tsv`` file contains information about each job that has been submitted. In particular, it indicates when that particular job has been submitted, started, and finished. Note, however, that just because a job will be listed as "finished" in ``job.checklist.tsv`` even if it terminates due to some error or timeout. It is suggested that one does a cursory glance over ``job.checklist.tsv`` or the individual result files (via ``wc -l *.m8``) to determine if this is the case. If so, we suggest that you manually resubmit the jobs after modifying the file accordingly (commenting out Diamond searches that have been successfully completed, modifying the job submission parameters).
+
 Determining environmentally representative genes: ``mfpcount``
 --------------------------------------------------------------
 
 The next step in the process is to summarize the Diamond blast results and to determine which gene clusters are the most representative of the environment of study. This is done by counting the presence and abundance of each gene cluster, and then determining which clusters are overly represented using the *representation score*.
 
+The representation score is attempts to 
+
+.. code:: bash
+
+    $ mfpcount -i 0.82.fa.diamond.result 
+
+
 Preparing fasta files for primer design: ``mfpprepare``
 -------------------------------------------------------
+
+Now that we have summarized the results and determined which clusters to include, we now prepare the fasta files for input into `EcoFunPrimer <https://github.com/rdpstaff/EcoFunPrimer>`_. The command prepares and submits a job submission that will peform the following actions:
+
+   * Finds the nucleotide sequences corresponding to the protein sequecnes to be included (as indicated by the inclusion file)
+   * Aligns them using `Clustal Omega (v1.2.4) <http://www.clustal.org/omega/>`_
+   * Removes any *N* characters from this aligned file
+
 
 Designing primers: ``mfpdesign``
 --------------------------------
 
+Now that the files have been prepared for use, we will now use the ``mfpdesign`` command to submit a job to calculate primers.
+
+.. code:: bash
+
+    $ mfpdesign -i prepped.rpoB.fa
+
+Some output will flash on the screen and you will see that a job has been submitted.
+
+This command will create the following files:
+
+    * ``0.82.fa.dmnd``, the Diamond database created by ``mfpsearch``
+    * ``diamond_commands``, a directory containing:
+        * ``commands.diamond.txt``, a file containing all of the individual diamond commands to be executed
+        * ``job.diamond.xxx.sb``, a slurm job script containing a chunk of 20 lines of ``commands.diamond.txt``
+        * ``job.checklist.tsv``, a tsv containing information about the status of all of the ``job.diamond.xxx.sb`` files.
+    * ``<metagenome_file>.m8``, the results of the Diamond search against ``<metagenome_file>``
+
+Some notes:
+
+
 In-silico qPCR: ``mfpqpcr``
 ---------------------------
+
+The primers output in the previous step are EcoFunPrimer's attempt at covering all of the sequences provided. However, it may be the case that these primers *overcover* the input. This step performs *in silico* qPCR to determine theoretical products and returns a set of primers that provide minimal coverage of the input sequences.
+
