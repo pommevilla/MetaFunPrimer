@@ -4,8 +4,8 @@ Tutorial
 This gives an example of what a basic workflow using MetaFunPrimer may look like. Included with the pipeline in the ``tests/test_data/rpoB_sample_data`` directory are three files:
 
     * ``rpoB.protein.fasta``, a nucleotide fasta file,
-    * ``rpoB.nucleotide.fasta``, a protein fasta file,
-    * ``rpoB.nucleotide_protein_map.tsv``, a TSV file showing the corresponding nucleotide sequence name for each protein sequence in the fasta file above
+    * ``rpoB.nucleotide.fasta``, the protein fasta file for the above nucleotide sequences,
+    * ``rpoB.nucleotide_protein_map.tsv``, a TSV file with the corresponding nucleotide sequence name for each protein sequence in the fasta file above. To be specific, the first column is the protein sequence identifier and the second column contains the nucleotide sequence identifier.
 
 These are the three files necessary to run the pipeline.
 
@@ -39,9 +39,7 @@ After successfully running the command, the directory ``rpoB.protein.fasta.clust
     * ``0.xx.fa.clstr``, one of the outputs of ``CD-HIT``, which shows the clusters found at similarity threshold *0.xx*. The representative gene of each cluster is indicated by a \*
     * ``0.xx.fa``, the other output of ``CD-HIT``, which contains the protein sequence of the representative genes found in ``0.xx.fa.clstr``
 
-When we open ``rpoB.protein.fasta.log``, we see that the recommended similarity threshold is *0.82*, which results in 24 gene clusters. The recommended next command is ``mfpsearch -i 0.82.fa -e ../sample_metagenomes``.  
-
-If the recommended similarity threshold results in too many or too few clusters, the user can consult ``cluster_counts.tsv`` and choose another threshold of their choice, modifying the ``mfpsearch`` command above accordingly.
+When we open ``rpoB.protein.fasta.log``, we see that the recommended similarity threshold is *0.82*, which results in 24 gene clusters. The recommended next command is ``mfpsearch -i 0.82.fa -e ../sample_metagenomes``. If the recommended similarity threshold results in too many or too few clusters, the user can consult ``cluster_counts.tsv`` and choose another threshold of their choice, modifying the ``mfpsearch`` command above accordingly.
 
 Counting presence and abundance: ``mfpsearch``
 -------------------------------------------------
@@ -81,6 +79,27 @@ The representation score is attempts to
 
     $ mfpcount -i 0.82.fa.diamond.result 
 
+This command will create the following files:
+
+    * ``0.96.fa.diamond_results.summary.tsv``, a TSV whose columns are
+        * Gene name
+        * Presence
+        * Abundance
+        * Representation score
+        * Cumulative (normalized) representation score when the genes are ordered by representation score
+        * First order difference of gene inclusion when ordered by gene abundance
+        * Cumulative (normalized) abundance when genes are ordered by abundance 
+    * ``0.96.fa.diamond_results.recommended_clusters.fo_diffs``, a list of gene recommended gene clusters for inclusion based on first-order differences. The recommendation is made in the following way:
+        * Order the genes by abundance
+        * Calculate the first order difference of each gene
+        * Determine which gene has the highest first order difference score
+        * Starting from the gene with the highest abundance, include every gene cluster until you hit the gene cluster with the highest first-order difference
+    * ``0.96.fa.diamond_results.recommended_clusters.s_score``, a list of gene clusters recommended for inclusion based on the representation score. The recommendation is made in the following way:
+        * Separately normalize the presence and abundance of each gene to be between 0 and 100.
+        * Calculate the mean of the new normalized presence and abundance to get the *representation score* (R-score)
+        * Reorder the genes by the R-score and calculate the cumulative R-score
+        * Include genes until you meet some cumulative R-score threshold. By default this inclusion threshold is 0.80, though the user can set this to be whatever they choose
+    * ``0.96.fa.diamond_results.log``, which contains details about the run of ``mfpcount``
 
 Preparing fasta files for primer design: ``mfpprepare``
 -------------------------------------------------------
@@ -91,6 +110,25 @@ Now that we have summarized the results and determined which clusters to include
    * Aligns them using `Clustal Omega (v1.2.4) <http://www.clustal.org/omega/>`_
    * Removes any *N* characters from this aligned file
 
+
+The code to run this is
+
+.. code:: bash
+
+    $ mfpprepare -n fungene_9.6_amoA_AOB_1205_unaligned_nucleotide_seqs.fa -p fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa -c fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa.clustering/0.96.fa.clstr -t fungene_9.6_amoA_AOB_1205_unaligned_protein_seqs.fa.clustering/0.96.fa.diamond_results.recommended_clusters.s_score -m proteinTransNameNucleotide.txt
+
+
+Here is an explanation of each of the arguments:
+
+    * ``-n`` is the nucleotide fasta file
+    * ``-p`` is the protein fasta file
+    * ``-c`` is the cluster information file (output from ``CD-HIT`` in the ``mfpcluster`` step)
+    * ``-t`` is the thresholding file, containing the names of the clusters to include for primer design. Examples of these files are the ``0.96.fa.diamond_results.recommended_clusters.s_score`` and ``0.96.fa.diamond_results.recommended_clusters.fo_diffs`` files output in the previous steps. 
+    * ``-m`` is the protein-nucleotide sequence map  
+
+Notes:
+
+    * The thresholding files output by ``mfpcount`` are only suggestions. If desired, the user can supply their threshold file by writing the names of each desired gene cluster in a newline-separated text document (see the ``*.recommended_clusters.*`` files for examples). You can then pass this file as the argument to the `-t` paramater above. 
 
 Designing primers: ``mfpdesign``
 --------------------------------
@@ -112,11 +150,4 @@ This command will create the following files:
         * ``job.checklist.tsv``, a tsv containing information about the status of all of the ``job.diamond.xxx.sb`` files.
     * ``<metagenome_file>.m8``, the results of the Diamond search against ``<metagenome_file>``
 
-Some notes:
-
-
-In-silico qPCR: ``mfpqpcr``
----------------------------
-
-The primers output in the previous step are EcoFunPrimer's attempt at covering all of the sequences provided. However, it may be the case that these primers *overcover* the input. This step performs *in silico* qPCR to determine theoretical products and returns a set of primers that provide minimal coverage of the input sequences.
 
