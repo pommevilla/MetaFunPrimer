@@ -7,7 +7,7 @@ This gives an example of what a basic workflow using MetaFunPrimer may look like
     * ``rpoB.nucleotide.fasta``, the protein fasta file for the above nucleotide sequences,
     * ``rpoB.nucleotide_protein_map.tsv``, a TSV file with the corresponding nucleotide sequence name for each protein sequence in the fasta file above. To be specific, the first column is the protein sequence identifier and the second column contains the nucleotide sequence identifier.
 
-These are the three files necessary to run the pipeline.
+These are the three files necessary to run the pipeline. 
 
 The tutorial assumes that you were able to successfully run ``check_reqs.sh`` and received the "All required packages found" message. See the `Installation <https://metafunprimer.readthedocs.io/en/latest/Installation.html>`_ page for more info.
 
@@ -39,12 +39,12 @@ After successfully running the command, the directory ``rpoB.protein.fasta.clust
     * ``0.xx.fa.clstr``, one of the outputs of ``CD-HIT``, which shows the clusters found at similarity threshold *0.xx*. The representative gene of each cluster is indicated by a \*
     * ``0.xx.fa``, the other output of ``CD-HIT``, which contains the protein sequence of the representative genes found in ``0.xx.fa.clstr``
 
-When we open ``rpoB.protein.fasta.log``, we see that the recommended similarity threshold is *0.82*, which results in 24 gene clusters. The recommended next command is ``mfpsearch -i 0.82.fa -e ../sample_metagenomes``. If the recommended similarity threshold results in too many or too few clusters, the user can consult ``cluster_counts.tsv`` and choose another threshold of their choice, modifying the ``mfpsearch`` command above accordingly.
+When we open ``rpoB.protein.fasta.log``, we see that the recommended similarity threshold is *0.82*, which results in 24 gene clusters. The log also contains a recommended next command:  ``mfpsearch -i 0.82.fa -e ../sample_metagenomes``. However, if the recommended similarity threshold results in too many or too few clusters, the user can consult ``cluster_counts.tsv`` and choose another threshold of their choice, modifying the ``mfpsearch`` command above accordingly.
 
 Counting presence and abundance: ``mfpsearch``
 -------------------------------------------------
 
-The next step in the pipeline is to use ``mfpsearch`` to  quantify the presence and abundance of the gene clusters chosen in the previous step within the environmental metagenomes. Here, the `presence` of a gene is the number of samples it was found in, while its `abundance` is the total number of times the gene was found. We run the following command:
+The next step in the pipeline is to use ``mfpsearch`` to search for the representative genes of the gene clusters chosen in the previous step within the environmental metagenomes provided by the user. We run the following command:
 
 .. code:: bash
 
@@ -71,9 +71,11 @@ The ``job.checklist.tsv`` file contains information about each job that has been
 Determining environmentally representative genes: ``mfpcount``
 --------------------------------------------------------------
 
-The next step in the process is to summarize the Diamond blast results and to determine which gene clusters are the most representative of the environment of study. This is done by counting the presence and abundance of each gene cluster, and then determining which clusters are overly represented using the *representation score*.
+We will now summarize the Diamond blast results and determine which gene clusters are the most representative of the environment of study. This is done by counting the presence and abundance of each gene cluster, calculating their *representation score* (R-score), and including gene clusters until a cumulative R-score threshold is met. Here, the `presence` of a gene is the number of samples it was found in, while its `abundance` is the total number of times the gene was found. 
 
-The representation score is attempts to 
+The R-score quantifies how prevalant the the gene sequence is within the environment files. It is calculated by first (seperately) normalizing the presence and abundance of each gene, and then taking the mean of these normalized counts. Thus, those genes with higher presence and abundance within the environment files will have higher R-scores, and will be a higher priority gene target for primer design.
+
+To summarize the results in the previous step, run the following command:
 
 .. code:: bash
 
@@ -109,7 +111,6 @@ Now that we have summarized the results and determined which clusters to include
    * Finds the nucleotide sequences corresponding to the protein sequecnes to be included (as indicated by the inclusion file)
    * Aligns them using `Clustal Omega (v1.2.4) <http://www.clustal.org/omega/>`_
    * Removes any *N* characters from this aligned file
-
 
 The code to run this is
 
