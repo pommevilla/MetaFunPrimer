@@ -4,7 +4,7 @@
 
 A pipeline to design high-throughput qPCR primers to target environmentally abundant genes.
 
-*Latest version: v0.90.2, 3/2/2020*
+*Latest version: v0.90.3, 3/2/2020*
 
 ## Programs required
 
