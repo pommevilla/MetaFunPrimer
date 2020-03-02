@@ -30,7 +30,8 @@ Finally, run ``check_reqs.sh`` to verify that that the required packages are ins
     Checking cd-hit: OK.
     Checking clustalo-1.2.4-Ubuntu-x86_64: OK.
     Checking parallel: OK.
-    
+    Checking qsub: OK.
+
     All required packages found. MetaFunPrimer is ready for use.
     See https://metafunprimer.readthedocs.io/en/latest/Tutorial.html for an introduction to the package.
 

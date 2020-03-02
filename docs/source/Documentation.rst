@@ -28,9 +28,3 @@ Documentation
         
         The name of the output directory. 
 
-Version History
----------------
-
-* v0.51 (11/14/2019): Adding documentation.
-* v0.5 (11/14/2019): Beta release.
-
