@@ -3,3 +3,10 @@
 
 # For local testing
 shunit2-2.1.7/
+
+# For sample runs of mfp using included test data
+tests/test_data/rpoB_sample_data/*
+!tests/test_data/rpoB_sample_data/rpoB.nucleotide.fasta
+!tests/test_data/rpoB_sample_data/rpoB.protein.fasta
+!tests/test_data/rpoB_sample_data/rpoB.nucleotide_protein_map.tsv
+

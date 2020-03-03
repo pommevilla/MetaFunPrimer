@@ -2,9 +2,9 @@
 
 [![Build Status](https://travis-ci.com/pommevilla/MetaFunPrimer.svg?branch=master)](https://travis-ci.com/pommevilla/MetaFunPrimer)
 
-A pipeline to design high-throughput qPCR primers to target environmentally abundant genes.
+A pipeline to design high-throughput qPCR primers to target environmentally abundant genes. See [the documentation](https://metafunprimer.readthedocs.io/) for installation instructions and a demonstration of the pipeline.
 
-*Latest version: v0.90.1, 2/5/2020*
+*Latest version: v0.90.4, 3/2/2020*
 
 ## Programs required
 
