@@ -11,6 +11,7 @@
 # 		as a fasta file
 # Example: bash design_primers.sh abundant_genes_nucleotide.aligned.noN.fa 
 
+set -e
 
 bold=$(tput bold)
 normal=$(tput sgr0)
@@ -57,7 +58,7 @@ if (($# == 0)); then
 fi
 
 
-while getopts ":hi:o:b:e:-:" opt; do
+while getopts ":hi:o:b:t:e:-:" opt; do
   case ${opt} in
 	h ) 
 		usage
@@ -65,6 +66,9 @@ while getopts ":hi:o:b:e:-:" opt; do
       	;;
 	o )
 		outdir=$OPTARG
+	;;
+	t )
+		thresh=$OPTARG
 	;;	
 	i )
 		input_dir=$OPTARG
@@ -110,7 +114,18 @@ then
     die "Input directory required"
 fi
 
-thresh=0.80
+if [ ! "$thresh" ]
+then
+	thresh=0.80
+else
+	if ! [[ $thresh =~ ^[+-]?[0-9]+([.][0-9]+)?$ ]]
+	then
+		die "Threshold needs to be numeric"
+	elif [[ $thresh > 1 || $thresh < 0 ]]
+	then
+		die "Threshold needs to be bigger or equal to 0, smaller or equal to 1"
+	fi
+fi
 
 echo "Input directory: $(readlink -f $input_dir)"
 shortdir=$(readlink -f $input_dir | rev | cut -d '/' -f 1 | rev)
