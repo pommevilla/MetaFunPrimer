@@ -1,4 +1,4 @@
-#!/usr/bin/python3 
+#!/usr/bin/python
 """
 This script count how many hit found ; cutoff = 80 percent identity
 usage: python make_count_diamond.py mgm4477807.3.fastq.m8 mgm4477807.3.fastq.m8

@@ -226,7 +226,10 @@ echo "Oligo size range: ($min_oligo_length, $max_oligo_length)"
 
 head <(job_header) > mfpdesign.$input_file.sb
 
-echo "java -jar /mnt/research/germs/softwares/Primer_Design/PrimerDesign_latest/PrimerDesign.jar -subcommand select -input $input_file -productLengthMin $min_product_length -productLengthMax $max_product_length -oligoMinSize $min_oligo_length -oligoMaxSize $max_oligo_length -maxMismatches 0 -tempMin 55 -tempMax 63 -hairMax 24 -homoMax 35 -isTreeWeightNeeded f -isHenikoffWeightNeeded f -os linux -output $outdir.rdp -assayMax $assay_max -degenMax 0 -NoTEndFilter t -NoPoly3GCFilter t -PolyRunFilter 4 -GCFilterMin 0.15 -GCFilterMax 0.8" >> mfpdesign.$input_file.sb
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+
+echo "java -jar "$SCRIPTPATH/PrimerDesign.jar" -subcommand select -input $input_file -productLengthMin $min_product_length -productLengthMax $max_product_length -oligoMinSize $min_oligo_length -oligoMaxSize $max_oligo_length -maxMismatches 0 -tempMin 55 -tempMax 63 -hairMax 24 -homoMax 35 -isTreeWeightNeeded f -isHenikoffWeightNeeded f -os linux -output $outdir.rdp -assayMax $assay_max -degenMax 0 -NoTEndFilter t -NoPoly3GCFilter t -PolyRunFilter 4 -GCFilterMin 0.15 -GCFilterMax 0.8" >> mfpdesign.$input_file.sb
 
 # To do: remove trailing .rdp from outdir.fa
 echo "get_primer_from_design.py $outdir.rdp > $outdir.primers" >> mfpdesign.$input_file.sb

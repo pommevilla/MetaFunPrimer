@@ -182,7 +182,7 @@ cd diamond_commands
 
 printf "\nCreating job commands..."
 
-for fin in $env_dir/*.{fasta,fa,fastq,faa}
+for fin in $env_dir/*.{fasta,fa,fastq,faa,fna}
 do
 	echo "diamond blastx --db ../$input_file --query $fin --out ../$(basename $fin).m8 --id 97"
 done > commands.diamond.txt
