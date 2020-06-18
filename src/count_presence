@@ -1,4 +1,4 @@
-#!/usr/bin/python3 
+#!/usr/bin/python
 """
 Quantifies the presence of the genes within a directory of *.m8 files.
 The presence of a gene is how many samples a gene appears in.
