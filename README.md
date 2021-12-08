@@ -23,3 +23,7 @@ MetaFunPrimer requires the following input files:
 
 * Nucleotide and protein sequences of the genes of interest
 * Metagenome files for your environment of interest
+
+## Authors
+
+MetaFunPrimer was written by and is maintained by [Paul Villanueva](http://github.com/pommevilla) and [Jia Liu](https://github.com/jialiu232). 
