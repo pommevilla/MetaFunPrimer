@@ -26,4 +26,4 @@ MetaFunPrimer requires the following input files:
 
 ## Authors
 
-MetaFunPrimer was written by and is maintained by [Paul Villanueva](http://github.com/pommevilla) and [Jia Liu](https://github.com/jialiu232). 
+MetaFunPrimer is written and maintained by [Paul Villanueva](http://github.com/pommevilla) and [Jia Liu](https://github.com/jialiu232). 
