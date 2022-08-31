@@ -150,7 +150,7 @@ def read_primer(file):
                     else:
                         fpri[seq] = name
                 if name[0] == 'R':
-                    if seq in rpri:
+                    if rseq in rpri:
                         temp = rpri[rseq] + ',' +name
                         rpri[rseq] = temp
                     else:
