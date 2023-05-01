@@ -1,6 +1,6 @@
 # MetaFunPrimer
 
-** Note: This pipeline is currently being redeveloped to use Snakemake and Docker containers. ETA for this transition is Q4 2023. **
+*Note: This pipeline is currently being redeveloped to use Snakemake and Docker containers. ETA for this transition is Q4 2023.*
 
 [![Build Status](https://travis-ci.com/pommevilla/MetaFunPrimer.svg?branch=master)](https://travis-ci.com/pommevilla/MetaFunPrimer)
 
