@@ -1,5 +1,7 @@
 # MetaFunPrimer
 
+** Note: This pipeline is currently being redeveloped to use Snakemake and Docker containers. ETA for this transition is Q4 2023. **
+
 [![Build Status](https://travis-ci.com/pommevilla/MetaFunPrimer.svg?branch=master)](https://travis-ci.com/pommevilla/MetaFunPrimer)
 
 A pipeline to design high-throughput qPCR primers to target environmentally abundant genes. See [the documentation](https://metafunprimer.readthedocs.io/) for installation instructions and a demonstration of the pipeline.
